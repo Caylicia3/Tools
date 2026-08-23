@@ -1,5 +1,6 @@
-const CDN_BASE = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.9';
-const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const BUNDLE_URL = chrome.runtime.getURL('lib/vision_bundle.mjs');
+const WASM_BASE_URL = chrome.runtime.getURL('lib/wasm/');
+const MODEL_URL = chrome.runtime.getURL('lib/hand_landmarker.task');
 
 export function initGestureEngine({ video, sensitivity = 0.5, onGesture }) {
   let landmarker = null;
@@ -61,9 +62,9 @@ export function initGestureEngine({ video, sensitivity = 0.5, onGesture }) {
 
   async function init() {
     if (initialized) return;
-    const module = await import(`${CDN_BASE}/+esm`);
+    const module = await import(BUNDLE_URL);
     const { FilesetResolver, HandLandmarker } = module;
-    const vision = await FilesetResolver.forVisionTasks(`${CDN_BASE}/wasm/`);
+    const vision = await FilesetResolver.forVisionTasks(WASM_BASE_URL);
     landmarker = await HandLandmarker.createFromOptions(vision, {
       baseOptions: {
         modelAssetPath: MODEL_URL,

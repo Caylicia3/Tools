@@ -3,8 +3,12 @@
   "default_locale": "zh_CN",
   "name": "__MSG_extName__",
   "description": "__MSG_extDescription__",
-  "version": "1.0.0",
-  "permissions": ["storage", "activeTab", "videoCapture"],
+  "version": "1.0.1",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "videoCapture"
+  ],
   "host_permissions": [
     "https://wx.qq.com/*",
     "https://web.wechat.com/*",
@@ -12,8 +16,13 @@
   ],
   "content_scripts": [
     {
-      "matches": ["https://wx.qq.com/*", "https://web.wechat.com/*"],
-      "js": ["content/content-entry.js"],
+      "matches": [
+        "https://wx.qq.com/*",
+        "https://web.wechat.com/*"
+      ],
+      "js": [
+        "content/content-entry.js"
+      ],
       "run_at": "document_idle",
       "all_frames": false
     }
@@ -45,12 +54,17 @@
         "content/gesture-panel.css",
         "content/camera-bridge.js",
         "content/gesture-engine.js",
-        "icons/*.png"
+        "icons/*.png",
+        "lib/*",
+        "lib/wasm/*"
       ],
-      "matches": ["https://wx.qq.com/*", "https://web.wechat.com/*"]
+      "matches": [
+        "https://wx.qq.com/*",
+        "https://web.wechat.com/*"
+      ]
     }
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com; object-src 'self'; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com"
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self'"
   }
 }
