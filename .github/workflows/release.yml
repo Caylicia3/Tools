@@ -1,9 +1,12 @@
-name: Release
+﻿name: Release
 
 on:
   push:
     tags:
       - 'wechat-gesture-panel-v*'
+
+permissions:
+  contents: write
 
 jobs:
   release:
