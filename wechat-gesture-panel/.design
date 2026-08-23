@@ -1,0 +1,79 @@
+{
+  "data": [
+    {
+      "id": "page-index",
+      "title": "微信手势控制面板",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1787467200000,
+      "canvasData": {
+        "x": 24,
+        "y": -12,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-4a9cb27b",
+          "measuredAt": 1787472158273
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/index.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-index-enhanced",
+      "title": "微信手势控制面板 - 增强版",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1787468000000,
+      "canvasData": {
+        "x": 424,
+        "y": -12,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-42a60c3e",
+          "measuredAt": 1787472158273
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/index-enhanced.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-index-enhanced-v2",
+      "title": "微信手势控制面板 - 折叠版",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1787469000000,
+      "canvasData": {
+        "x": 824,
+        "y": -12,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 375,
+          "sourceHash": "fnv1a-ae6550eb",
+          "measuredAt": 1787472158273
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/index-enhanced-v2.html",
+        "interactions": []
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": false,
+    "deviceType": "mobile",
+    "projectName": "微信手势控制面板",
+    "visualEditorEnabled": false
+  }
+}

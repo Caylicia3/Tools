@@ -1,0 +1,97 @@
+{
+  "success": true,
+  "outcome": "passed",
+  "repairable": true,
+  "terminalViolations": [],
+  "terminalBlockingSummary": null,
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.07.06.8",
+    "version_source": "skill-release-manifest.json",
+    "runtime_skill_dir": null,
+    "recorded_at": null,
+    "expected_version": "2026.08.06.19.15.08",
+    "status": "mismatch",
+    "read_status": "ok"
+  },
+  "operatingMode": "free-explore",
+  "renderBlockingErrorCount": 0,
+  "softWarningCount": 1,
+  "renderBlockingErrors": [],
+  "errorSignatures": [],
+  "softWarnings": [
+    "[html-quality] colors_and_type.css: ordinary/static shadow tokens must keep every shadow alpha <= 0.05; deeper shadows are allowed only for floating-layer tokens such as modal/popover/dropdown/drawer/overlay (--gest-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.14), --gest-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.22))."
+  ],
+  "repairPlanHints": [],
+  "repairActionTable": [],
+  "errorCount": 0,
+  "warningCount": 1,
+  "errors": [],
+  "warnings": [
+    "[html-quality] colors_and_type.css: ordinary/static shadow tokens must keep every shadow alpha <= 0.05; deeper shadows are allowed only for floating-layer tokens such as modal/popover/dropdown/drawer/overlay (--gest-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.14), --gest-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.22))."
+  ],
+  "validationRunDisciplineStatus": {
+    "declared": true,
+    "restoreMode": false,
+    "maxFullValidationRuns": 2,
+    "validationHistoryCount": 0,
+    "repairLedgerCount": 0,
+    "softWarningsTriggerRepair": false,
+    "terminalState": null,
+    "nextAction": null,
+    "violations": [],
+    "success": true
+  },
+  "terminalState": null,
+  "nextCheck": {
+    "type": "finish-readiness",
+    "command": "node \"c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\" --check=all",
+    "fullValidationAllowed": false,
+    "reason": "workspace validation passed; run complete finish readiness before final delivery"
+  },
+  "repairBatch": [],
+  "repairContextPacket": {
+    "schema_version": "1.0",
+    "purpose": "small-context repair packet; read this before full validation-report.json",
+    "success": true,
+    "terminalState": null,
+    "skillProvenance": {
+      "name": "solo-design",
+      "version": "2026.07.06.8",
+      "version_source": "skill-release-manifest.json",
+      "runtime_skill_dir": null,
+      "recorded_at": null,
+      "expected_version": "2026.08.06.19.15.08",
+      "status": "mismatch",
+      "read_status": "ok"
+    },
+    "renderBlockingErrorCount": 0,
+    "softWarningCount": 1,
+    "renderBlockingErrors": [],
+    "repairActionTable": [],
+    "nextCheck": {
+      "type": "finish-readiness",
+      "command": "node \"c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\" --check=all",
+      "fullValidationAllowed": false,
+      "reason": "workspace validation passed; run complete finish readiness before final delivery"
+    },
+    "forbidden": [
+      "do not read validator source",
+      "do not rerun full validation when nextCheck.fullValidationAllowed=false",
+      "do not start preview/browser unless user explicitly asks",
+      "do not hand-edit repair ledger fields"
+    ]
+  },
+  "projectFileHashes": {
+    ".design": "4964948eaf495d64eaa176ef888128f4a72abe0b4d8687df9bac87c1a3817203",
+    "colors_and_type.css": "b41e71ec981d8f96495df94dceffd99f1d20512ac040ffdfb8d1841ed75fb4e4",
+    "runtime-orchestration-summary.json": "93a79230b5134f296f084157ef9657fcf94a01fb7b795f4a1f0f9359422a325d",
+    "pages/index-enhanced-v2.html": "19f60f5ee2a719456f29cf951bbc5069b84836d2c64f54ee99b391165fcff182",
+    "pages/index-enhanced.html": "e87d4a0686be64185fcb287f3fdfb6fb5efd3658a9e2cad29a49228780e95b55",
+    "pages/index.html": "360ee5fc93704f061a57a637ac2a3411d8896a62584fcaa6dbb184ce05d9676a"
+  },
+  "designDir": "C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel",
+  "expectedPages": 3,
+  "requireInteractions": null,
+  "checkedAt": "2026-08-23T07:27:33.320Z"
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>微信手势面板</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      width: 240px;
+      padding: 14px;
+      font-family: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+      background: #f2f5f7;
+      color: #1f2937;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .status {
+      font-size: 12px;
+      color: #6b7b85;
+      margin-bottom: 12px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+    }
+    button {
+      flex: 1;
+      padding: 8px 10px;
+      border: none;
+      border-radius: 999px;
+      background: #6e9aa8;
+      color: #ffffff;
+      font-size: 12px;
+      cursor: pointer;
+      transition: opacity 150ms ease;
+    }
+    button:hover { opacity: 0.9; }
+    button.secondary {
+      background: #e8eef2;
+      color: #4b5563;
+    }
+  </style>
+</head>
+<body>
+  <h1>微信手势面板</h1>
+  <p class="status" id="status">状态：未加载</p>
+  <div class="row">
+    <button id="toggleBtn">展开 / 收起</button>
+    <button id="optionsBtn" class="secondary">选项</button>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

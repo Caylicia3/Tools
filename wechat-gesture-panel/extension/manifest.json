@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "default_locale": "zh_CN",
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
+  "version": "1.0.0",
+  "permissions": ["storage", "activeTab", "videoCapture"],
+  "host_permissions": [
+    "https://wx.qq.com/*",
+    "https://web.wechat.com/*",
+    "https://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://wx.qq.com/*", "https://web.wechat.com/*"],
+      "js": ["content/content-entry.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "__MSG_extActionTitle__",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "options_page": "options/options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/gesture-panel.html",
+        "content/gesture-panel.css",
+        "content/camera-bridge.js",
+        "content/gesture-engine.js",
+        "icons/*.png"
+      ],
+      "matches": ["https://wx.qq.com/*", "https://web.wechat.com/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com; object-src 'self'; connect-src 'self' https://cdn.jsdelivr.net https://storage.googleapis.com"
+  }
+}

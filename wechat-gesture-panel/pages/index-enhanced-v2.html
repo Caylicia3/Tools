@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信手势控制面板 - 折叠版</title>
+    <style id="theme-vars">
+/* WeChat Gesture Panel — low-saturation cool palette */
+
+:root {
+  --gest-background: #f2f5f7;
+  --gest-foreground: #1f2937;
+
+  --gest-card: rgba(255, 255, 255, 0.86);
+  --gest-card-solid: #ffffff;
+  --gest-card-foreground: #1f2937;
+
+  --gest-popover: #ffffff;
+  --gest-popover-foreground: #1f2937;
+
+  --gest-primary: #6e9aa8;
+  --gest-primary-foreground: #ffffff;
+  --gest-primary-subtle: rgba(110, 154, 168, 0.12);
+
+  --gest-muted: #e8eef2;
+  --gest-muted-foreground: #6b7b85;
+
+  --gest-border: #d6dee3;
+  --gest-input: #d6dee3;
+  --gest-ring: #6e9aa8;
+
+  --gest-success: #7db39a;
+  --gest-warning: #d4b27a;
+  --gest-error: #c98b8b;
+  --gest-info: #6e9aa8;
+
+  --gest-bg: #f2f5f7;
+  --gest-surface: rgba(255, 255, 255, 0.86);
+  --gest-surface-2: rgba(255, 255, 255, 0.96);
+  --gest-ink: #1f2937;
+  --gest-ink-2: #4b5563;
+  --gest-ink-3: #6b7b85;
+  --gest-line: #d6dee3;
+
+  --gest-radius-sm: 4px;
+  --gest-radius-md: 10px;
+  --gest-radius-lg: 16px;
+  --gest-radius-pill: 999px;
+
+  --gest-shadow-1: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.02);
+  --gest-shadow-2: 0 8px 24px -8px rgba(15, 23, 42, 0.14);
+  --gest-shadow-3: 0 24px 60px -20px rgba(15, 23, 42, 0.22);
+
+  --gest-font-sans: "PingFang SC", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+  --gest-font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  font-family: var(--gest-font-sans);
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--gest-background);
+    --color-foreground: var(--gest-foreground);
+    --color-card: var(--gest-card);
+    --color-card-foreground: var(--gest-card-foreground);
+    --color-popover: var(--gest-popover);
+    --color-popover-foreground: var(--gest-popover-foreground);
+    --color-primary: var(--gest-primary);
+    --color-primary-foreground: var(--gest-primary-foreground);
+    --color-muted: var(--gest-muted);
+    --color-muted-foreground: var(--gest-muted-foreground);
+    --color-border: var(--gest-border);
+    --color-input: var(--gest-input);
+    --color-ring: var(--gest-ring);
+    --radius-sm: var(--gest-radius-sm);
+    --radius-md: var(--gest-radius-md);
+    --radius-lg: var(--gest-radius-lg);
+  }
+  @layer base {
+    body { background: var(--gest-background); color: var(--gest-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--gest-background); }
+      .text-background { color: var(--gest-background); }
+      .border-background { border-color: var(--gest-background); }
+      .ring-background { --tw-ring-color: var(--gest-background); }
+      .bg-foreground { background-color: var(--gest-foreground); }
+      .text-foreground { color: var(--gest-foreground); }
+      .border-foreground { border-color: var(--gest-foreground); }
+      .ring-foreground { --tw-ring-color: var(--gest-foreground); }
+      .bg-card { background-color: var(--gest-card); }
+      .text-card { color: var(--gest-card); }
+      .border-card { border-color: var(--gest-card); }
+      .ring-card { --tw-ring-color: var(--gest-card); }
+      .bg-card-foreground { background-color: var(--gest-card-foreground); }
+      .text-card-foreground { color: var(--gest-card-foreground); }
+      .border-card-foreground { border-color: var(--gest-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--gest-card-foreground); }
+      .bg-popover { background-color: var(--gest-popover); }
+      .text-popover { color: var(--gest-popover); }
+      .border-popover { border-color: var(--gest-popover); }
+      .ring-popover { --tw-ring-color: var(--gest-popover); }
+      .bg-popover-foreground { background-color: var(--gest-popover-foreground); }
+      .text-popover-foreground { color: var(--gest-popover-foreground); }
+      .border-popover-foreground { border-color: var(--gest-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--gest-popover-foreground); }
+      .bg-primary { background-color: var(--gest-primary); }
+      .text-primary { color: var(--gest-primary); }
+      .border-primary { border-color: var(--gest-primary); }
+      .ring-primary { --tw-ring-color: var(--gest-primary); }
+      .bg-primary-foreground { background-color: var(--gest-primary-foreground); }
+      .text-primary-foreground { color: var(--gest-primary-foreground); }
+      .border-primary-foreground { border-color: var(--gest-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--gest-primary-foreground); }
+      .bg-muted { background-color: var(--gest-muted); }
+      .text-muted { color: var(--gest-muted); }
+      .border-muted { border-color: var(--gest-muted); }
+      .ring-muted { --tw-ring-color: var(--gest-muted); }
+      .bg-muted-foreground { background-color: var(--gest-muted-foreground); }
+      .text-muted-foreground { color: var(--gest-muted-foreground); }
+      .border-muted-foreground { border-color: var(--gest-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--gest-muted-foreground); }
+      .bg-border { background-color: var(--gest-border); }
+      .text-border { color: var(--gest-border); }
+      .border-border { border-color: var(--gest-border); }
+      .ring-border { --tw-ring-color: var(--gest-border); }
+      .bg-input { background-color: var(--gest-input); }
+      .text-input { color: var(--gest-input); }
+      .border-input { border-color: var(--gest-input); }
+      .ring-input { --tw-ring-color: var(--gest-input); }
+      .bg-ring { background-color: var(--gest-ring); }
+      .text-ring { color: var(--gest-ring); }
+      .border-ring { border-color: var(--gest-ring); }
+      .ring-ring { --tw-ring-color: var(--gest-ring); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+  <style id="critical-layout">
+    :root {
+      --gest-video-bg: #0f1419;
+      --gest-subtitle-bg: rgba(0, 0, 0, 0.55);
+      --gest-overlay: rgba(15, 23, 42, 0.62);
+      --gest-spotlight-ring: rgba(255, 255, 255, 0.45);
+      --gest-gradient-1: rgba(30, 41, 51, 0.9);
+      --gest-gradient-2: rgba(20, 30, 40, 0.9);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      min-height: 100%;
+      overflow-x: hidden;
+    }
+    body {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      background: var(--gest-video-bg);
+      color: var(--gest-foreground);
+      font-family: var(--gest-font-sans);
+    }
+    .video-mockup {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
+      background:
+        radial-gradient(ellipse at 30% 20%, var(--gest-gradient-1) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 80%, var(--gest-gradient-2) 0%, transparent 50%),
+        var(--gest-video-bg);
+      overflow: hidden;
+    }
+    .subtitle-bar {
+      grid-row: 2;
+      background: var(--gest-subtitle-bg);
+      padding: 12px 16px;
+      text-align: center;
+    }
+    .subtitle-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--gest-primary-foreground);
+    }
+
+    /* Floating gesture panel */
+    .gesture-panel {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 10;
+      background: var(--gest-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--gest-border);
+      box-shadow: var(--gest-shadow-2);
+      touch-action: none;
+      user-select: none;
+      will-change: transform;
+      transition: max-width 200ms ease, border-radius 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+      overflow: hidden;
+    }
+    .gesture-panel.is-dragging {
+      box-shadow: var(--gest-shadow-3);
+    }
+    .gesture-panel.is-hidden {
+      display: none;
+    }
+    .gesture-panel.collapsed {
+      max-width: max-content;
+      width: auto;
+      border-radius: var(--gest-radius-pill);
+      background: rgba(255, 255, 255, 0.62);
+    }
+    .gesture-panel.expanded {
+      max-width: 220px;
+      width: max-content;
+      border-radius: var(--gest-radius-md);
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    /* Collapsed bar */
+    .collapsed-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 44px;
+      padding: 0 6px 0 8px;
+      cursor: grab;
+    }
+    .gesture-panel.is-dragging .collapsed-bar,
+    .gesture-panel.is-dragging .expanded-header {
+      cursor: grabbing;
+    }
+    .gesture-panel.expanded .collapsed-bar {
+      display: none;
+    }
+    .collapsed-chips {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Expanded layout */
+    .expanded-content {
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 200ms ease, opacity 200ms ease;
+      overflow: hidden;
+    }
+    .gesture-panel.expanded .expanded-content {
+      max-height: 600px;
+      opacity: 1;
+    }
+    .expanded-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 44px;
+      padding: 0 6px 0 8px;
+      cursor: grab;
+    }
+    .expanded-body {
+      padding: 0 12px 12px;
+    }
+    .panel-title {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--gest-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Controls */
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      color: var(--gest-ink-3);
+      opacity: 0.55;
+      cursor: grab;
+      border-radius: var(--gest-radius-sm);
+      flex-shrink: 0;
+    }
+    .panel-toggle,
+    .panel-exit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: none;
+      border-radius: var(--gest-radius-pill);
+      background: transparent;
+      color: var(--gest-ink-3);
+      cursor: pointer;
+      transition: background-color 150ms ease, color 150ms ease;
+      flex-shrink: 0;
+    }
+    .panel-toggle:hover,
+    .panel-exit:hover {
+      background: var(--gest-muted);
+    }
+    .panel-exit {
+      color: var(--gest-error);
+    }
+    .panel-exit:hover {
+      background: color-mix(in srgb, var(--gest-error) 12%, transparent);
+    }
+
+    /* Chips */
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 12px;
+      line-height: 1.25;
+      font-weight: 500;
+      border-radius: var(--gest-radius-pill);
+      white-space: nowrap;
+    }
+    .chip-active {
+      background: var(--gest-primary);
+      color: var(--gest-primary-foreground);
+    }
+    .chip-ghost {
+      background: var(--gest-muted);
+      color: var(--gest-ink-2);
+    }
+    .expanded-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px 0;
+    }
+
+    /* Status rows */
+    .camera-status,
+    .current-gesture {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      font-size: 12px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--gest-radius-pill);
+      background: var(--gest-success);
+      flex-shrink: 0;
+    }
+    .status-label,
+    .gesture-label {
+      color: var(--gest-ink-2);
+      white-space: nowrap;
+    }
+    .gesture-value {
+      margin-left: auto;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--gest-primary);
+      white-space: nowrap;
+    }
+    .section-divider {
+      height: 1px;
+      background: var(--gest-line);
+      margin: 4px 0;
+    }
+
+    /* Gesture help */
+    .gesture-help {
+      border-top: 1px solid var(--gest-line);
+      padding: 10px 0;
+      margin-top: 4px;
+    }
+    .gesture-help-title {
+      margin: 0 0 8px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--gest-ink-2);
+    }
+    .gesture-help-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--gest-ink-2);
+      padding: 3px 0;
+    }
+    .gesture-help-row .help-action {
+      margin-left: auto;
+      color: var(--gest-ink);
+      white-space: nowrap;
+    }
+    .gesture-help-row .help-name {
+      color: var(--gest-ink-3);
+      white-space: nowrap;
+    }
+
+    /* Replay button */
+    .replay-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 6px 8px;
+      font-size: 12px;
+      line-height: 1.25;
+      font-weight: 500;
+      color: var(--gest-primary);
+      background: transparent;
+      border: 1px solid color-mix(in srgb, var(--gest-primary) 30%, transparent);
+      border-radius: var(--gest-radius-sm);
+      cursor: pointer;
+      transition: background-color 150ms ease;
+    }
+    .replay-btn:hover {
+      background: var(--gest-primary-subtle);
+    }
+
+    /* Exit toast */
+    .exit-toast {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 20;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--gest-card-solid);
+      border: 1px solid var(--gest-border);
+      border-radius: var(--gest-radius-pill);
+      box-shadow: var(--gest-shadow-2);
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+    .exit-toast.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .toast-text {
+      font-size: 12px;
+      color: var(--gest-ink-2);
+      white-space: nowrap;
+    }
+    .toast-restore {
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--gest-primary);
+      background: var(--gest-primary-subtle);
+      border: none;
+      border-radius: var(--gest-radius-pill);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 150ms ease;
+    }
+    .toast-restore:hover {
+      opacity: 0.85;
+    }
+
+    /* Onboarding */
+    .onboarding-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .onboarding-overlay.is-active {
+      display: flex;
+    }
+    .spotlight-ring {
+      position: absolute;
+      z-index: 31;
+      border-radius: var(--gest-radius-md);
+      box-shadow: 0 0 0 4px var(--gest-spotlight-ring), 0 0 0 9999px var(--gest-overlay);
+      background: transparent;
+      pointer-events: none;
+      opacity: 0;
+      transition: all 0.25s ease;
+    }
+    .spotlight-ring.is-active {
+      opacity: 1;
+    }
+    .onboarding-card {
+      position: relative;
+      z-index: 32;
+      width: 100%;
+      max-width: 272px;
+      background: var(--gest-card-solid);
+      border-radius: var(--gest-radius-lg);
+      box-shadow: var(--gest-shadow-3);
+      padding: 16px;
+    }
+    .onboarding-title {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--gest-ink);
+    }
+    .onboarding-text {
+      margin: 0 0 16px;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--gest-ink-2);
+    }
+    .onboarding-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .onboarding-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: var(--gest-radius-sm);
+      cursor: pointer;
+      border: none;
+      transition: background-color 150ms ease, opacity 150ms ease;
+    }
+    .onboarding-btn-secondary {
+      color: var(--gest-ink-3);
+      background: transparent;
+    }
+    .onboarding-btn-secondary:hover {
+      background: var(--gest-muted);
+    }
+    .onboarding-btn-primary {
+      color: var(--gest-primary-foreground);
+      background: var(--gest-primary);
+    }
+    .onboarding-btn-primary:hover {
+      opacity: 0.9;
+    }
+
+    @media (max-width: 360px) {
+      .gesture-panel {
+        top: 12px;
+        right: 12px;
+      }
+      .gesture-panel.expanded {
+        max-width: 200px;
+      }
+      .exit-toast {
+        top: 12px;
+        right: 12px;
+      }
+    }
+  </style>
+  <main>
+    <section class="video-mockup" aria-label="视频通话界面" id="videoMockup">
+      <div class="gesture-panel collapsed" id="gesturePanel" role="region" aria-label="手势控制面板">
+        <!-- Collapsed floating bar -->
+        <div class="collapsed-bar" id="collapsedBar">
+          <span class="drag-handle" aria-label="拖动把手" role="button" tabindex="0">
+            <i data-lucide="grip-horizontal" class="w-4 h-4"></i>
+          </span>
+          <div class="collapsed-chips" id="collapsedChips">
+            <span class="chip chip-ghost">打开</span>
+            <span class="chip chip-ghost">选中</span>
+            <span class="chip chip-active">滚动</span>
+          </div>
+          <button type="button" class="panel-toggle" id="expandToggle" aria-label="展开面板">
+            <i data-lucide="chevrons-up-down" class="w-4 h-4"></i>
+          </button>
+          <button type="button" class="panel-exit" id="exitPanel" aria-label="退出面板">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+
+        <!-- Expanded panel -->
+        <div class="expanded-content" id="expandedContent">
+          <div class="expanded-header">
+            <span class="drag-handle" aria-label="拖动把手" role="button" tabindex="0">
+              <i data-lucide="grip-horizontal" class="w-4 h-4"></i>
+            </span>
+            <span class="panel-title">手势控制</span>
+            <button type="button" class="panel-toggle" id="collapseToggle" aria-label="收起面板">
+              <i data-lucide="chevrons-down-up" class="w-4 h-4"></i>
+            </button>
+            <button type="button" class="panel-exit" id="exitPanelExpanded" aria-label="退出面板">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <div class="expanded-body">
+            <div class="camera-status">
+              <i data-lucide="video" class="w-4 h-4 text-[var(--gest-ink-2)]"></i>
+              <span class="status-dot" aria-hidden="true"></span>
+              <span class="status-label">摄像头 · 开启</span>
+            </div>
+            <div class="section-divider" role="separator"></div>
+            <div class="current-gesture">
+              <i data-lucide="hand" class="w-5 h-5 text-[var(--gest-ink)]"></i>
+              <span class="gesture-label">当前手势</span>
+              <span class="gesture-value">滑动</span>
+            </div>
+            <div class="expanded-chips" id="actionChips">
+              <span class="chip chip-ghost">打开</span>
+              <span class="chip chip-ghost">选中</span>
+              <span class="chip chip-active">滚动</span>
+            </div>
+            <div class="gesture-help" id="gestureHelp">
+              <p class="gesture-help-title">手势说明</p>
+              <div class="gesture-help-row">
+                <i data-lucide="arrow-up-down" class="w-4 h-4 text-[var(--gest-primary)]"></i>
+                <span class="help-name">上下挥动</span>
+                <span class="help-action">滚动</span>
+              </div>
+              <div class="gesture-help-row">
+                <i data-lucide="hand-metal" class="w-4 h-4 text-[var(--gest-primary)]"></i>
+                <span class="help-name">握拳</span>
+                <span class="help-action">选中</span>
+              </div>
+              <div class="gesture-help-row">
+                <i data-lucide="hand" class="w-4 h-4 text-[var(--gest-primary)]"></i>
+                <span class="help-name">张开手</span>
+                <span class="help-action">打开</span>
+              </div>
+            </div>
+            <button type="button" id="replayOnboarding" class="replay-btn">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              重新引导
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Exit toast -->
+      <div class="exit-toast" id="exitToast" role="status" aria-live="polite" aria-hidden="true">
+        <span class="toast-text">已退出</span>
+        <button type="button" class="toast-restore" id="restorePanel">恢复面板</button>
+      </div>
+
+      <!-- Onboarding overlay -->
+      <div class="onboarding-overlay" id="onboardingOverlay" aria-hidden="true">
+        <div class="spotlight-ring" id="spotlightRing"></div>
+        <div class="onboarding-card">
+          <p class="onboarding-title" id="onboardingTitle">欢迎使用手势面板</p>
+          <p class="onboarding-text" id="onboardingText">...</p>
+          <div class="onboarding-actions">
+            <button type="button" id="onboardingSkip" class="onboarding-btn onboarding-btn-secondary">跳过</button>
+            <button type="button" id="onboardingNext" class="onboarding-btn onboarding-btn-primary">下一步</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <div class="subtitle-bar">
+      <p class="subtitle-text">这里显示视频字幕，面板不会遮挡此区域</p>
+    </div>
+  </main>
+  <script>
+    (function () {
+      const panel = document.getElementById('gesturePanel');
+      const mockup = document.getElementById('videoMockup');
+      const collapsedBar = document.getElementById('collapsedBar');
+      const expandToggle = document.getElementById('expandToggle');
+      const collapseToggle = document.getElementById('collapseToggle');
+      const exitBtn = document.getElementById('exitPanel');
+      const exitBtnExpanded = document.getElementById('exitPanelExpanded');
+      const exitToast = document.getElementById('exitToast');
+      const restoreBtn = document.getElementById('restorePanel');
+      const replayBtn = document.getElementById('replayOnboarding');
+      let isDragging = false;
+      let startX = 0, startY = 0;
+      let baseX = 0, baseY = 0;
+      let toastTimer = null;
+
+      function isControl(target) {
+        return target.closest('.panel-toggle, .panel-exit, .toast-restore, .replay-btn, .onboarding-btn');
+      }
+
+      function getBounds() {
+        const mockRect = mockup.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const style = getComputedStyle(panel);
+        const initialTop = parseFloat(style.top) || 0;
+        const initialRight = parseFloat(style.right) || 0;
+        const initialLeft = mockRect.width - panelRect.width - initialRight;
+        return {
+          minX: -initialLeft,
+          maxX: initialRight,
+          minY: -initialTop,
+          maxY: mockRect.height - panelRect.height - initialTop
+        };
+      }
+
+      function setTranslate(x, y, scale) {
+        const s = scale ? ' scale(1.02)' : '';
+        panel.style.transform = 'translate3d(' + x + 'px, ' + y + 'px, 0)' + s;
+      }
+
+      function clamp(val, min, max) {
+        return Math.max(min, Math.min(max, val));
+      }
+
+      function expandPanel() {
+        panel.classList.remove('collapsed');
+        panel.classList.add('expanded');
+        panel.setAttribute('aria-expanded', 'true');
+      }
+
+      function collapsePanel() {
+        panel.classList.remove('expanded');
+        panel.classList.add('collapsed');
+        panel.setAttribute('aria-expanded', 'false');
+      }
+
+      function showPanel() {
+        panel.classList.remove('is-hidden');
+        panel.setAttribute('aria-hidden', 'false');
+      }
+
+      function hidePanel() {
+        panel.classList.add('is-hidden');
+        panel.setAttribute('aria-hidden', 'true');
+      }
+
+      function showToast() {
+        exitToast.classList.add('is-visible');
+        exitToast.setAttribute('aria-hidden', 'false');
+      }
+
+      function hideToast() {
+        exitToast.classList.remove('is-visible');
+        exitToast.setAttribute('aria-hidden', 'true');
+      }
+
+      function exitPanel() {
+        hidePanel();
+        showToast();
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          hideToast();
+          showPanel();
+        }, 1500);
+      }
+
+      function restorePanel() {
+        if (toastTimer) clearTimeout(toastTimer);
+        hideToast();
+        showPanel();
+      }
+
+      panel.addEventListener('pointerdown', function (e) {
+        if (isControl(e.target)) return;
+        isDragging = true;
+        panel.classList.add('is-dragging');
+        panel.setPointerCapture(e.pointerId);
+        startX = e.clientX;
+        startY = e.clientY;
+        setTranslate(baseX, baseY, true);
+      });
+
+      panel.addEventListener('pointermove', function (e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const bounds = getBounds();
+        const x = clamp(baseX + dx, bounds.minX, bounds.maxX);
+        const y = clamp(baseY + dy, bounds.minY, bounds.maxY);
+        setTranslate(x, y, true);
+      });
+
+      panel.addEventListener('pointerup', function (e) {
+        if (!isDragging) return;
+        isDragging = false;
+        panel.classList.remove('is-dragging');
+        panel.releasePointerCapture(e.pointerId);
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const bounds = getBounds();
+        baseX = clamp(baseX + dx, bounds.minX, bounds.maxX);
+        baseY = clamp(baseY + dy, bounds.minY, bounds.maxY);
+        setTranslate(baseX, baseY, false);
+      });
+
+      panel.addEventListener('pointercancel', function () {
+        if (!isDragging) return;
+        isDragging = false;
+        panel.classList.remove('is-dragging');
+        setTranslate(baseX, baseY, false);
+      });
+
+      collapsedBar.addEventListener('click', function (e) {
+        if (isControl(e.target)) return;
+        expandPanel();
+      });
+
+      expandToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        expandPanel();
+      });
+
+      collapseToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        collapsePanel();
+      });
+
+      exitBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        exitPanel();
+      });
+
+      exitBtnExpanded.addEventListener('click', function (e) {
+        e.stopPropagation();
+        exitPanel();
+      });
+
+      restoreBtn.addEventListener('click', restorePanel);
+
+      // Onboarding
+      const overlay = document.getElementById('onboardingOverlay');
+      const ring = document.getElementById('spotlightRing');
+      const titleEl = document.getElementById('onboardingTitle');
+      const textEl = document.getElementById('onboardingText');
+      const nextBtn = document.getElementById('onboardingNext');
+      const skipBtn = document.getElementById('onboardingSkip');
+      let stepIndex = 0;
+
+      const steps = [
+        { target: '.drag-handle', title: '拖动面板', text: '按住把手拖动面板，调整到你顺手的位置', action: '下一步' },
+        { target: '#gestureHelp', title: '手势说明', text: '上下挥动=滚动，握拳=选中，张开手=打开', action: '下一步' },
+        { target: '#actionChips', title: '自动执行', text: '看到对应手势后，面板会自动执行操作', action: '知道了' }
+      ];
+
+      function positionSpotlight(selector) {
+        const target = document.querySelector(selector);
+        if (!target || !mockup) return;
+        const mockRect = mockup.getBoundingClientRect();
+        const rect = target.getBoundingClientRect();
+        ring.style.width = (rect.width + 8) + 'px';
+        ring.style.height = (rect.height + 8) + 'px';
+        ring.style.left = (rect.left - mockRect.left - 4) + 'px';
+        ring.style.top = (rect.top - mockRect.top - 4) + 'px';
+        ring.classList.add('is-active');
+      }
+
+      function renderStep(i) {
+        const step = steps[i];
+        titleEl.textContent = step.title;
+        textEl.textContent = step.text;
+        nextBtn.textContent = step.action;
+        positionSpotlight(step.target);
+      }
+
+      function startOnboarding() {
+        expandPanel();
+        stepIndex = 0;
+        overlay.classList.add('is-active');
+        overlay.setAttribute('aria-hidden', 'false');
+        renderStep(stepIndex);
+      }
+
+      function finishOnboarding() {
+        overlay.classList.remove('is-active');
+        overlay.setAttribute('aria-hidden', 'true');
+        ring.classList.remove('is-active');
+        try { localStorage.setItem('gesture-onboarding-shown-v2', '1'); } catch (_) {}
+      }
+
+      nextBtn.addEventListener('click', function () {
+        if (stepIndex < steps.length - 1) {
+          stepIndex++;
+          renderStep(stepIndex);
+        } else {
+          finishOnboarding();
+        }
+      });
+
+      skipBtn.addEventListener('click', finishOnboarding);
+      replayBtn.addEventListener('click', startOnboarding);
+
+      try {
+        if (localStorage.getItem('gesture-onboarding-shown-v2') !== '1') {
+          if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', startOnboarding);
+          } else {
+            requestAnimationFrame(startOnboarding);
+          }
+        }
+      } catch (_) {}
+    })();
+  </script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

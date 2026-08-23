@@ -1,0 +1,626 @@
+{
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.07.06.8",
+    "version_source": "skill-release-manifest.json"
+  },
+  "project": {
+    "name": "微信手势控制面板",
+    "deviceType": "mobile",
+    "resolvedLane": "existing_edit_add_comparison",
+    "sourceProjectLaneHeritage": "free_exploration",
+    "intentProfile": {
+      "caseFamily": "existing_edit_add_comparison",
+      "surface": "page",
+      "complexity": "simple-comparison-edit",
+      "routingReason": "Existing .design project with active canvas; user requests add drag reposition, gesture mapping, and onboarding. Default comparison-page mutation applies."
+    },
+    "comparisonEdit": {
+      "sourcePageId": "page-index",
+      "sourceHtmlSrc": "pages/index.html",
+      "targetPageId": "page-index-enhanced",
+      "targetHtmlSrc": "pages/index-enhanced.html",
+      "derivationType": "comparison-page",
+      "inPlaceEditAllowed": false
+    },
+    "sharedProjectShellContract": {
+      "mobileNavigation": {
+        "applies": false
+      }
+    },
+    "selectedIntentWorkflowRead": true,
+    "contextReadScope": {
+      "mainAgent": {
+        "forbiddenReads": [
+          "other intent-workflows/**",
+          "Sub-Agent implementation files before dispatch"
+        ]
+      },
+      "pageSubAgent": {
+        "allowedReads": [
+          "current lane page runtime guide",
+          "current lane dispatch contract excerpt",
+          "current Page Packet",
+          "supplementaryReads[] only"
+        ],
+        "forbiddenReads": [
+          "SKILL.md full re-read",
+          "other intent-workflows/**",
+          "full runtime-orchestration-summary.json unless explicitly sliced"
+        ]
+      },
+      "readScopeLedgerWriter": "shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs"
+    },
+    "contextRequirementsLoaded": [
+      {
+        "path": "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "intent-workflows/intent-project-mutation/existing-edit-page-runtime.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "intent-workflows/intent-project-mutation/existing-edit-dispatch-contract.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "intent-workflows/intent-project-mutation/comparison-page-contract.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/page-rendering-quality-gate.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/design-artifact-validation.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "delivery-quality/delivery-evidence-contract.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      },
+      {
+        "path": "visual-experience/visual-experience-guidelines.md",
+        "readStatus": "loaded",
+        "bodyRead": true
+      }
+    ],
+    "validationRunDiscipline": {
+      "maxFullValidationRuns": 2,
+      "softWarningsTriggerRepair": false,
+      "blockingRepairMode": "targeted-once",
+      "forbiddenRepairTriggers": [
+        "soft-warning-only",
+        "provenance-warning-only",
+        "style-warning-only"
+      ]
+    },
+    "lowValueCallWatchdog": {
+      "applies": true,
+      "noProgressSignals": [
+        "no_tool_call",
+        "no_artifact_diff",
+        "no_structured_decision"
+      ],
+      "noProgressNextAction": "enter_readiness_or_blocked_summary"
+    },
+    "cssPreflightEvidence": {
+      "applies": true,
+      "status": "passed",
+      "command": "node {SKILL_DIR}/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs colors_and_type.css .preflight/preflight.html --title=\"Preflight\" --lang=zh-CN --prefix=gest",
+      "brandPrefix": "gest",
+      "checks": {
+        "themeVars": "present",
+        "semanticTokenFallback": "present",
+        "themeInline": "present",
+        "tailwindCdn": "present",
+        "htmlClass": "present",
+        "semanticMappings": "resolved"
+      },
+      "retryCount": 0,
+      "blockingReason": null
+    },
+    "dispatchPreflightManifest": [
+      {
+        "recorded_at": "2026-08-23T07:13:13.265Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "ExistingEditPagePacket",
+        "laneContract": {
+          "resolvedLane": "existing_edit_add_comparison",
+          "packetType": "ExistingEditPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-mutation/existing-edit-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-project-mutation/existing-edit-dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-mutation/existing-edit-page-runtime.md",
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/index.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/index.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design",
+          "deterministicToolDir": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-design-workspace.mjs",
+            "validateFinishReadiness": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs",
+            "validateRestoreContract": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node \"c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\" --node-id=\"page-index\" --html-src=\"pages/index.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\colors_and_type.css",
+        "htmlFilePath": "C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\pages\\index.html",
+        "brandPrefix": "gest",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node \"c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\colors_and_type.css\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\pages\\index.html\" --title=\"微信手势控制面板\" --lang=\"zh-CN\" --prefix=\"gest\" --replace-head",
+        "headFillMode": "replace-head-after-body",
+        "viewportMode": null,
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          ".design": "42ce44ef4054e2e502cfab471b2a9cd00e41a17f112bd0bd254e08dcf4204af3"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md"
+          ],
+          "optionalContextFiles": [
+            "visual-experience/visual-experience-guidelines.md"
+          ],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": false,
+          "appliesToThisPage": false,
+          "canonicalHtmlIncluded": false,
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      },
+      {
+        "recorded_at": "2026-08-23T07:13:13.265Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "ExistingEditPagePacket",
+        "laneContract": {
+          "resolvedLane": "existing_edit_add_comparison",
+          "packetType": "ExistingEditPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-mutation/existing-edit-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-project-mutation/existing-edit-dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-mutation/existing-edit-page-runtime.md",
+        "nodeId": "page-index-enhanced",
+        "htmlSrc": "pages/index-enhanced.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/index-enhanced.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/index-enhanced.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design",
+          "deterministicToolDir": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-design-workspace.mjs",
+            "validateFinishReadiness": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs",
+            "validateRestoreContract": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node \"c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\" --node-id=\"page-index-enhanced\" --html-src=\"pages/index-enhanced.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\colors_and_type.css",
+        "htmlFilePath": "C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\pages\\index-enhanced.html",
+        "brandPrefix": "gest",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node \"c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\colors_and_type.css\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\pages\\index-enhanced.html\" --title=\"微信手势控制面板 - 增强版\" --lang=\"zh-CN\" --prefix=\"gest\" --replace-head",
+        "headFillMode": "replace-head-after-body",
+        "viewportMode": null,
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          ".design": "42ce44ef4054e2e502cfab471b2a9cd00e41a17f112bd0bd254e08dcf4204af3"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md"
+          ],
+          "optionalContextFiles": [
+            "visual-experience/visual-experience-guidelines.md"
+          ],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": false,
+          "appliesToThisPage": false,
+          "canonicalHtmlIncluded": false,
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      },
+      {
+        "recorded_at": "2026-08-23T07:13:13.265Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "ExistingEditPagePacket",
+        "laneContract": {
+          "resolvedLane": "existing_edit_add_comparison",
+          "packetType": "ExistingEditPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-project-mutation/existing-edit-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-project-mutation/existing-edit-dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-project-mutation/existing-edit-page-runtime.md",
+        "nodeId": "page-index-enhanced-v2",
+        "htmlSrc": "pages/index-enhanced-v2.html",
+        "supplementaryReads": [],
+        "allowedWritePaths": [
+          "pages/index-enhanced-v2.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/index-enhanced-v2.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design",
+          "deterministicToolDir": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-design-workspace.mjs",
+            "validateFinishReadiness": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs",
+            "validateRestoreContract": "c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node \"c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\" --node-id=\"page-index-enhanced-v2\" --html-src=\"pages/index-enhanced-v2.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\colors_and_type.css",
+        "htmlFilePath": "C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\pages\\index-enhanced-v2.html",
+        "brandPrefix": "gest",
+        "aestheticsMode": "free-explore",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node \"c:\\Users\\ROG\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\colors_and_type.css\" \"C:\\Users\\ROG\\AppData\\Roaming\\TRAE SOLO CN\\ModularData\\ai-agent\\work-mode-projects\\6a8a94ed7c7d309c506848d0\\wechat-gesture-panel\\pages\\index-enhanced-v2.html\" --title=\"微信手势控制面板 - 折叠版\" --lang=\"zh-CN\" --prefix=\"gest\"",
+        "headFillMode": "skeleton-first",
+        "viewportMode": null,
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          ".design": "42ce44ef4054e2e502cfab471b2a9cd00e41a17f112bd0bd254e08dcf4204af3"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-project-mutation/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md"
+          ],
+          "optionalContextFiles": [
+            "visual-experience/visual-experience-guidelines.md"
+          ],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": false,
+          "appliesToThisPage": false,
+          "canonicalHtmlIncluded": false,
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      }
+    ],
+    "styleContinuityAnchors": [
+      "cool low-saturation palette",
+      "subtle frosted-glass panel",
+      "single primary muted cyan hue"
+    ],
+    "readScopeLedger": [
+      {
+        "actor": "page-sub-agent",
+        "lane": "existing_edit_add_comparison",
+        "path": "intent-workflows/intent-project-mutation/existing-edit-page-runtime.md",
+        "reason": "page runtime guide",
+        "scopeClass": "page-runtime",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-08-23T06:56:34.990Z",
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "existing_edit_add_comparison",
+        "path": "intent-workflows/intent-project-mutation/existing-edit-dispatch-contract.md",
+        "reason": "dispatch contract",
+        "scopeClass": "dispatch-contract",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-08-23T06:56:34.990Z",
+        "nodeId": "page-index",
+        "htmlSrc": "pages/index.html"
+      }
+    ],
+    "mainAgentPostDispatchMutations": [
+      {
+        "path": ".design",
+        "reason": "initial-canvas-node-registration",
+        "owner": "main-agent",
+        "recordedAt": "2026-08-23T06:46:01.756Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "runtime-orchestration-summary.json",
+        "reason": "record-dispatch-completion-evidence",
+        "owner": "main-agent",
+        "recordedAt": "2026-08-23T06:46:01.756Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": ".design",
+        "reason": "register-comparison-page-node",
+        "owner": "main-agent",
+        "recordedAt": "2026-08-23T07:07:12.967Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": ".design",
+        "reason": "register-collapsed-page-node",
+        "owner": "main-agent",
+        "recordedAt": "2026-08-23T07:23:51.140Z",
+        "source": "record-dispatch-completion.mjs"
+      }
+    ],
+    "expectedDispatches": [
+      {
+        "nodeId": "page-index",
+        "pageId": "page-index",
+        "targetPageId": "page-index",
+        "htmlSrc": "pages/index.html",
+        "packetType": "FreePagePacket",
+        "status": "completed",
+        "changedFiles": ["pages/index.html"],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "3a11a422b451eebea77281e7d3218fb568d5897300ea81f2ea0f1f0fb075ba4b",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-23T06:46:01.756Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-index-enhanced",
+        "pageId": "page-index-enhanced",
+        "targetPageId": "page-index-enhanced",
+        "htmlSrc": "pages/index-enhanced.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "completed",
+        "changedFiles": ["pages/index-enhanced.html"],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "4f87e67342451f10410c87b87b98362cb0f873c1d6e44d5c254369a4c5218428",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-23T07:07:12.967Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "nodeId": "page-index-enhanced-v2",
+        "pageId": "page-index-enhanced-v2",
+        "targetPageId": "page-index-enhanced-v2",
+        "htmlSrc": "pages/index-enhanced-v2.html",
+        "packetType": "ExistingEditPagePacket",
+        "status": "completed",
+        "changedFiles": ["pages/index-enhanced-v2.html"],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "5261ced75576f4ebe6338c812a01a669532c5b3e38196b7dc726ee045d05da37",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-08-23T07:23:51.140Z",
+        "source": "record-dispatch-completion.mjs"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "nodeId": "page-index",
+      "htmlSrc": "pages/index.html",
+      "title": "微信手势控制面板",
+      "qualityRisks": [
+        "mobile layout",
+        "floating panel must not block video/subtitles"
+      ]
+    },
+    {
+      "nodeId": "page-index-enhanced",
+      "htmlSrc": "pages/index-enhanced.html",
+      "title": "微信手势控制面板 - 增强版",
+      "derivationType": "comparison-from-source",
+      "sourcePageId": "page-index",
+      "sourceHtmlSrc": "pages/index.html",
+      "qualityRisks": [
+        "mobile layout",
+        "floating panel drag bounds",
+        "onboarding overlay z-index"
+      ]
+    },
+    {
+      "nodeId": "page-index-enhanced-v2",
+      "htmlSrc": "pages/index-enhanced-v2.html",
+      "title": "微信手势控制面板 - 折叠版",
+      "derivationType": "comparison-from-source",
+      "sourcePageId": "page-index-enhanced",
+      "sourceHtmlSrc": "pages/index-enhanced.html",
+      "qualityRisks": [
+        "mobile layout",
+        "floating panel drag bounds",
+        "collapse/expand toggle",
+        "exit button placement"
+      ]
+    }
+  ]
+}
