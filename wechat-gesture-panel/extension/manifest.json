@@ -3,22 +3,20 @@
   "default_locale": "zh_CN",
   "name": "__MSG_extName__",
   "description": "__MSG_extDescription__",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "permissions": [
     "storage",
     "activeTab",
     "videoCapture"
   ],
   "host_permissions": [
-    "https://wx.qq.com/*",
-    "https://web.wechat.com/*",
+    "https://www.bilibili.com/*",
     "https://*/*"
   ],
   "content_scripts": [
     {
       "matches": [
-        "https://wx.qq.com/*",
-        "https://web.wechat.com/*"
+        "https://www.bilibili.com/*"
       ],
       "js": [
         "content/content-entry.js"
@@ -59,8 +57,7 @@
         "lib/wasm/*"
       ],
       "matches": [
-        "https://wx.qq.com/*",
-        "https://web.wechat.com/*"
+        "https://www.bilibili.com/*"
       ]
     }
   ],

@@ -3,7 +3,7 @@ document.getElementById('toggleBtn').addEventListener('click', async () => {
   if (!tab) return;
   chrome.tabs.sendMessage(tab.id, { type: 'TOGGLE_PANEL' }, (response) => {
     if (chrome.runtime.lastError) {
-      updateStatus('未在微信页面运行');
+      updateStatus('未在 Bilibili 页面运行');
     }
   });
 });
@@ -24,7 +24,7 @@ async function refreshStatus() {
   }
   chrome.tabs.sendMessage(tab.id, { type: 'GET_STATUS' }, (response) => {
     if (chrome.runtime.lastError || !response) {
-      updateStatus('未在微信页面运行');
+      updateStatus('未在 Bilibili 页面运行');
       return;
     }
     updateStatus(response.active ? (response.cameraActive ? '运行中 · 摄像头已开启' : '运行中 · 摄像头未开启') : '已暂停');

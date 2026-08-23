@@ -14,7 +14,7 @@ btnSave.addEventListener('click', () => {
   chrome.storage.sync.set({ sensitivity, enabled }, () => {
     elSaved.classList.add('is-visible');
     setTimeout(() => elSaved.classList.remove('is-visible'), 1500);
-    chrome.tabs.query({ url: ['https://wx.qq.com/*', 'https://web.wechat.com/*'] }, (tabs) => {
+    chrome.tabs.query({ url: ['https://www.bilibili.com/*'] }, (tabs) => {
       tabs.forEach((tab) => {
         chrome.tabs.sendMessage(tab.id, { type: 'UPDATE_SETTINGS', sensitivity, enabled }).catch(() => {});
       });

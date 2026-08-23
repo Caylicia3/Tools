@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const HOST_ID = 'wechat-gesture-panel-host';
+  const HOST_ID = 'bilibili-gesture-panel-host';
 
   let host = null;
   let shadow = null;
@@ -53,7 +53,7 @@
     });
 
     mounted = true;
-    window.__WECHAT_GESTURE_PANEL_HOST__ = host;
+    window.__BILIBILI_GESTURE_PANEL_HOST__ = host;
 
     await initCameraAndEngine();
   }
@@ -74,7 +74,7 @@
     cameraApi = initCamera({
       videoElement: video,
       onError: (error) => {
-        console.error('[WeChatGesturePanel] camera error', error);
+        console.error('[BilibiliGesturePanel] camera error', error);
         panelApi?.setCameraStatus(false, '摄像头 · 未授权');
       }
     });
@@ -158,7 +158,7 @@
     engineApi = null;
     video = null;
     mounted = false;
-    delete window.__WECHAT_GESTURE_PANEL_HOST__;
+    delete window.__BILIBILI_GESTURE_PANEL_HOST__;
   }
 
   async function applySettings(settings) {
@@ -220,7 +220,7 @@
 
   chrome.storage.sync.get(['enabled', 'sensitivity'], (result) => {
     if (chrome.runtime.lastError) {
-      console.error('[WeChatGesturePanel] storage error', chrome.runtime.lastError);
+      console.error('[BilibiliGesturePanel] storage error', chrome.runtime.lastError);
       return;
     }
     applySettings({
