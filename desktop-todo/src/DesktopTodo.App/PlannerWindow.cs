@@ -15,7 +15,8 @@ internal partial class PlannerWindow : Window {
  bool followToday=true; DateTime observedToday=DateTime.Today;
  double weekScrollX,weekScrollY=8*52,monthScrollX,monthScrollY,timelineScroll;
  internal double CalendarZoom=>MonthView?App.Instance.Appearance.MonthZoom:App.Instance.Appearance.WeekZoom;
- internal bool NodeDragging;
+ internal bool NodeDragging,TimelinePanning;
+ internal WindowState LastVisibleState {get;private set;}=WindowState.Normal;
  readonly Border frame=new();
  readonly Grid content=new();
  readonly DispatcherTimer resizeDebounce=new(){Interval=TimeSpan.FromMilliseconds(160)};
@@ -33,6 +34,8 @@ internal partial class PlannerWindow : Window {
   Native.PlaceOnScreen(this);
   frame.CornerRadius=new CornerRadius(16);frame.BorderThickness=new Thickness(1);frame.Padding=new Thickness(18,12,18,12);frame.Child=content;Content=frame;
   Store.Changed+=OnChanged;
+  SourceInitialized+=(_,_)=>Native.ConstrainMaximize(this);
+  StateChanged+=(_,_)=>{if(WindowState!=WindowState.Minimized)LastVisibleState=WindowState;if(loaded)Dispatcher.BeginInvoke(Render);};
   Loaded+=(_,_)=>{loaded=true;Render();ApplyWindowMode();};
   resizeDebounce.Tick+=(_,_)=>{resizeDebounce.Stop();Render();SaveBounds();};
   SizeChanged+=(_,_)=>{if(loaded){resizeDebounce.Stop();resizeDebounce.Start();}};
@@ -49,6 +52,11 @@ internal partial class PlannerWindow : Window {
   };
  }
  void OnChanged(){ if(!Dispatcher.CheckAccess()){Dispatcher.Invoke(Render);return;} Render(); }
+ internal void ToggleMaximize() {
+  if(WindowState==WindowState.Maximized){WindowState=WindowState.Normal;return;}
+  if(WindowState==WindowState.Normal)SaveBounds();
+  WindowState=WindowState.Maximized;
+ }
  internal void SaveBounds() {
   if(!loaded || Store==null || WindowState!=WindowState.Normal) return;
   try {
@@ -65,7 +73,7 @@ internal partial class PlannerWindow : Window {
   if(p.Topmost || !p.DesktopMode){Native.Detach(this);Topmost=p.Topmost;}
   else {Topmost=false;if(!Native.Attach(this)) ToolTip="桌面附着暂不可用，当前为普通浮动面板，可在设置中重新启用。";}
  }
- internal void RefreshClock(){if(observedToday!=DateTime.Today){if(followToday)SelectedDate=DateTime.Today;observedToday=DateTime.Today;} if(IsVisible && !NodeDragging && WindowState!=WindowState.Minimized && Mouse.LeftButton!=MouseButtonState.Pressed && !Application.Current.Windows.OfType<FormWindow>().Any())Render();if(Store.Current.Settings.DesktopMode&&!Store.Current.Settings.Topmost&&!Native.IsAttached(this))ApplyWindowMode();}
+ internal void RefreshClock(){if(observedToday!=DateTime.Today){if(followToday)SelectedDate=DateTime.Today;observedToday=DateTime.Today;} if(IsVisible && !NodeDragging && !TimelinePanning && WindowState!=WindowState.Minimized && Mouse.LeftButton!=MouseButtonState.Pressed && !Application.Current.Windows.OfType<FormWindow>().Any())Render();if(Store.Current.Settings.DesktopMode&&!Store.Current.Settings.Topmost&&!Native.IsAttached(this))ApplyWindowMode();}
  internal void ShowTimeline(){timelineCollapsed=false;Render();}
  internal static SolidColorBrush Brush(string hex,double opacity=1){var b=new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex));b.Opacity=opacity;return b;}
  internal static string InkFor(string hex){try{var c=(Color)ColorConverter.ConvertFromString(hex);return c.R*.299+c.G*.587+c.B*.114>148?"#302B3D":"#FFFFFF";}catch{return "#302B3D";}}
@@ -93,13 +101,14 @@ internal partial class PlannerWindow : Window {
    actions.Children.Add(Button(p.Detached?"合并":"拆分",()=>App.Instance.SetDetached(!Store.Current.Settings.Detached)));
    actions.Children.Add(Button("设置",()=>Dialogs.Settings(this)));
    var minimize=Button("—",()=>WindowState=WindowState.Minimized);minimize.ToolTip="最小化到任务栏";actions.Children.Add(minimize);
+   var maximize=Button(WindowState==WindowState.Maximized?"❐":"□",ToggleMaximize);maximize.ToolTip=WindowState==WindowState.Maximized?"还原窗口":"最大化（保留任务栏）";System.Windows.Automation.AutomationProperties.SetName(maximize,"最大化或还原");actions.Children.Add(maximize);
    var close=Button("×",App.Instance.ExitApp);close.ToolTip="退出整个程序";close.Foreground=Brush("#A43F4F");System.Windows.Automation.AutomationProperties.SetName(close,"退出整个程序");actions.Children.Add(close);
    header.Children.Add(actions);
-   var handle=new StackPanel{Cursor=Cursors.SizeAll,Background=Brushes.Transparent};
+   var handle=new StackPanel{Cursor=WindowState==WindowState.Maximized?Cursors.Arrow:Cursors.SizeAll,Background=Brushes.Transparent};
    handle.Children.Add(Text(TasksOnly?"任务时间轴":"日程管理",21,true));
    handle.Children.Add(Text(DateTime.Today.ToString("yyyy / MM / dd")+"   ·   "+new[]{"周日","周一","周二","周三","周四","周五","周六"}[(int)DateTime.Today.DayOfWeek],11,false));
    Point? drag=null;
-   handle.MouseLeftButtonDown+=(_,e)=>{drag=PointToScreen(e.GetPosition(this));handle.CaptureMouse();e.Handled=true;};
+   handle.MouseLeftButtonDown+=(_,e)=>{if(e.ClickCount==2){ToggleMaximize();e.Handled=true;return;}if(WindowState==WindowState.Maximized)return;drag=PointToScreen(e.GetPosition(this));handle.CaptureMouse();e.Handled=true;};
    handle.MouseMove+=(_,e)=>{if(drag is Point last&&e.LeftButton==MouseButtonState.Pressed){var next=PointToScreen(e.GetPosition(this));Native.Move(this,next.X-last.X,next.Y-last.Y);drag=next;}};
    handle.MouseLeftButtonUp+=(_,_)=>{drag=null;handle.ReleaseMouseCapture();SaveBounds();};
    header.Children.Add(handle);content.Children.Add(header);

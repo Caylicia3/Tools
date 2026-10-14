@@ -50,6 +50,7 @@ public sealed class Preferences {
  public bool DesktopMode { get; set; } = true;
 
  public bool Notifications { get; set; } = true;
+ public bool UseSystemNotifications { get; set; } // Opt in: registration may prompt security software.
  public int TimelineDays { get; set; } = 30;
  public double TimelineBarHeight { get; set; } = 11;
  public double TimelineRowHeight { get; set; } = 36;

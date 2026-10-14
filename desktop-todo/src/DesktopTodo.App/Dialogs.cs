@@ -49,19 +49,30 @@ internal static partial class Dialogs {
   w.Field(label,panel);w.Hint("例如 #B7ABD4：# 后接 6 位数字或 A～F 字母。也可直接点「选色」。");return text;
  }
  sealed record DialogHandle(IntPtr Handle):System.Windows.Forms.IWin32Window;
- sealed record ReminderFields(CheckBox Enabled,TextBox Days,TextBox Time) {
+ internal sealed record ReminderFields(ComboBox Mode,TextBox Days,TextBox Time,int OriginalDays,int OriginalHour,int OriginalMinute) {
   internal (bool Enabled,int Days,int Hour,int Minute) Read(){
-   int days=Number(Days,"提前提醒天数",0,3650);
-   if(!TimeSpan.TryParseExact(Time.Text.Trim(),new[]{"h\\:mm","hh\\:mm"},CultureInfo.InvariantCulture,out var time)||time.TotalHours>=24||time.TotalHours<0)throw new InvalidDataException("提醒时间请填写 00:00 到 23:59，例如 09:30。");
-   return(Enabled.IsChecked==true,days,time.Hours,time.Minutes);
+   bool daysValid=int.TryParse(Days.Text,out int days)&&days>=0&&days<=3650;
+   bool timeValid=TimeSpan.TryParseExact(Time.Text.Trim(),new[]{"h\\:mm","hh\\:mm"},CultureInfo.InvariantCulture,out var time)&&time.TotalHours<24&&time.TotalHours>=0;
+   if(Mode.SelectedIndex==1)return(false,daysValid?days:OriginalDays,timeValid?time.Hours:OriginalHour,timeValid?time.Minutes:OriginalMinute);
+   if(!daysValid)throw new InvalidDataException("提前提醒天数需要填写 0 到 3650 之间的整数。");
+   if(!timeValid)throw new InvalidDataException("提醒时间请填写 00:00 到 23:59，例如 09:30。");
+   return(true,days,time.Hours,time.Minutes);
   }
  }
- static ReminderFields ReminderEditor(FormWindow w,bool enabled,int days,int hour,int minute,DatePicker date){
-  var on=w.Check("启用提醒",enabled);var before=w.Input("提前几天（0 表示当天，最多 3650 天）",days.ToString());var clock=w.Input("提醒时间（HH:mm，例如 09:30）",hour.ToString("00")+":"+minute.ToString("00"));
+ static ReminderFields ReminderEditor(FormWindow w,bool enabled,int days,int hour,int minute,DatePicker date,string label){
+  var mode=w.Field(label,new ComboBox{ItemsSource=new[]{"提醒","不提醒"},SelectedIndex=enabled?0:1});
+  System.Windows.Automation.AutomationProperties.SetName(mode,"提醒方式");
+  var before=w.Input("提前几天（0 表示当天，最多 3650 天）",days.ToString());var clock=w.Input("提醒时间（HH:mm，例如 09:30）",hour.ToString("00")+":"+minute.ToString("00"));
+  System.Windows.Automation.AutomationProperties.SetName(before,"提前提醒天数");System.Windows.Automation.AutomationProperties.SetName(clock,"提醒时刻");
   var preview=new TextBlock{FontSize=12,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(0,0,0,10)};preview.SetResourceReference(TextBlock.ForegroundProperty,"MutedForeground");w.Fields.Children.Add(preview);
-  var fields=new ReminderFields(on,before,clock);
-  void Refresh(){try{var r=fields.Read();var at=Required(date,"提醒基准日期").AddDays(-r.Days).AddHours(r.Hour).AddMinutes(r.Minute);preview.Text=r.Enabled?"实际提醒："+at.ToString("yyyy/MM/dd HH:mm")+(at<DateTime.Now?"（此时间已过去）":""):"提醒已关闭";}catch(InvalidDataException ex){preview.Text=ex.Message;}catch(ArgumentOutOfRangeException){preview.Text="日期超出提醒支持范围，请选择 1900 年及以后的日期。";}}
-  before.TextChanged+=(_,_)=>Refresh();clock.TextChanged+=(_,_)=>Refresh();date.SelectedDateChanged+=(_,_)=>Refresh();on.Click+=(_,_)=>Refresh();Refresh();return fields;
+  var fields=new ReminderFields(mode,before,clock,days,hour,minute);
+  void Refresh(){
+   before.IsEnabled=clock.IsEnabled=mode.SelectedIndex==0;
+   if(mode.SelectedIndex==1){preview.Text="不提醒";return;}
+   try{var r=fields.Read();var at=Required(date,"提醒基准日期").AddDays(-r.Days).AddHours(r.Hour).AddMinutes(r.Minute);preview.Text="实际提醒："+at.ToString("yyyy/MM/dd HH:mm")+(at<DateTime.Now?"（此时间已过去）":"");}
+   catch(InvalidDataException ex){preview.Text=ex.Message;}catch(ArgumentOutOfRangeException){preview.Text="日期超出提醒支持范围，请选择 1900 年及以后的日期。";}
+  }
+  before.TextChanged+=(_,_)=>Refresh();clock.TextChanged+=(_,_)=>Refresh();date.SelectedDateChanged+=(_,_)=>Refresh();mode.SelectionChanged+=(_,_)=>Refresh();Refresh();return fields;
  }
  internal static void Event(PlannerWindow owner,Occurrence? occurrence,DateTime start,DateTime? end=null) {
   var existing=occurrence?.Source;
@@ -97,7 +108,8 @@ internal static partial class Dialogs {
   var color=Color(w,draft.Color);
   var notes=w.Input("备注",draft.Notes);notes.AcceptsReturn=true;notes.MinHeight=55;notes.TextWrapping=TextWrapping.Wrap;
   var completed=w.Check("任务已完成",draft.Completed);
-  var reminderFields=ReminderEditor(w,draft.Reminder,draft.ReminderDaysBefore,draft.ReminderHour,draft.ReminderMinute,end);
+  var reminderFields=ReminderEditor(w,draft.Reminder,draft.ReminderDaysBefore,draft.ReminderHour,draft.ReminderMinute,end,"任务截止提醒");
+  w.Hint("此选项只控制任务截止提醒。各个节点可独立设置提醒或不提醒。");
   w.Hint("任务日期修改后，已有节点仍需处于起止日期内。时间轴长条仅用于点击编辑，不能拖动。");
   var nodes=new StackPanel();w.Field("任务节点",nodes);
   void Refresh(){
@@ -125,7 +137,7 @@ internal static partial class Dialogs {
   var title=w.Input("节点名称",draft.Title);var date=w.Date("节点日期",draft.Date);
   w.Hint("任务范围："+task.Start.ToString("yyyy/MM/dd")+" — "+task.End.ToString("yyyy/MM/dd"));
   var notes=w.Input("备注",draft.Notes);notes.AcceptsReturn=true;notes.MinHeight=55;
-  var done=w.Check("这个节点已完成",draft.Completed);var reminderFields=ReminderEditor(w,draft.Reminder,draft.ReminderDaysBefore,draft.ReminderHour,draft.ReminderMinute,date);
+  var done=w.Check("这个节点已完成",draft.Completed);var reminderFields=ReminderEditor(w,draft.Reminder,draft.ReminderDaysBefore,draft.ReminderHour,draft.ReminderMinute,date,"节点提醒");
   Milestone? result=null;
   w.Commit(()=>{
    draft.Title=title.Text.Trim();draft.Date=Required(date,"节点日期");draft.Notes=notes.Text;draft.Completed=done.IsChecked==true;var r=reminderFields.Read();draft.Reminder=r.Enabled;draft.ReminderDaysBefore=r.Days;draft.ReminderHour=r.Hour;draft.ReminderMinute=r.Minute;

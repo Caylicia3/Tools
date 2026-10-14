@@ -1,7 +1,14 @@
+﻿#ifndef Payload
+#define Payload "..\artifacts\DesktopTodo"
+#endif
+#ifndef OutputName
+#define OutputName "DesktopTodo-0.1.2-win-x64-Setup"
+#endif
+
 [Setup]
 AppId={{36E96763-9573-4B93-B494-058BF5DDF380}
 AppName=日程管理
-AppVersion=0.1.1
+AppVersion=0.1.2
 AppPublisher=DesktopTodo
 DefaultDirName={code:DefaultInstallDir}
 DefaultGroupName=日程管理
@@ -12,7 +19,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.19045
 OutputDir=..\artifacts
-OutputBaseFilename=DesktopTodo-0.1.1-win-x64-Setup
+OutputBaseFilename={#OutputName}
 SetupIconFile=..\src\DesktopTodo.App\Assets\app.ico
 UninstallDisplayIcon={app}\DesktopTodo.exe
 Compression=lzma2
@@ -30,7 +37,7 @@ Name: "desktopicon"; Description: "创建桌面快捷方式"; Flags: unchecked
 Name: "startmenu"; Description: "创建开始菜单快捷方式"; Flags: unchecked
 
 [Files]
-Source: "..\artifacts\DesktopTodo\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,data-location.txt"
+Source: "{#Payload}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,data-location.txt"
 
 [Icons]
 Name: "{autodesktop}\日程管理"; Filename: "{app}\DesktopTodo.exe"; Tasks: desktopicon

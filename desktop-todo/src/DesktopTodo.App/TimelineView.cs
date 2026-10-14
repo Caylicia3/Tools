@@ -1,20 +1,19 @@
 using System.Windows.Shapes;
+using System.Windows.Controls.Primitives;
 namespace DesktopTodo.App;
 internal partial class PlannerWindow {
  internal void ZoomTimelineAt(double fraction,int direction){
-  if(NodeDragging||Mouse.LeftButton==MouseButtonState.Pressed)return;
+  if(NodeDragging||TimelinePanning||Mouse.LeftButton==MouseButtonState.Pressed)return;
   int next=ViewMath.ZoomDays(TimelineDays,direction);if(next==TimelineDays)return;
   TimelineStart=ViewMath.AnchoredStart(TimelineStart,TimelineDays,next,fraction);
   App.Instance.ChangeView(p=>p.TimelineDays=next);
  }
- internal bool MoveNode(string taskId,string nodeId,DateTime target,Func<bool>? confirm=null){
+ internal bool MoveNode(string taskId,string nodeId,DateTime target){
   var task=Store.Current.Tasks.Single(t=>t.Id==taskId);var node=task.Milestones.Single(m=>m.Id==nodeId);target=target.Date;
   if(target<task.Start.Date||target>task.End.Date||target==node.Date.Date)return false;
-  bool accepted=confirm?.Invoke()??MessageBox.Show(this,node.Title+"\n\n"+node.Date.ToString("yyyy/MM/dd")+" → "+target.ToString("yyyy/MM/dd")+"\n\n确认修改节点日期？","移动节点",MessageBoxButton.YesNo,MessageBoxImage.Question,MessageBoxResult.No)==MessageBoxResult.Yes;
-  if(!accepted)return false;
   Store.Edit("移动节点",s=>s.Tasks.Single(t=>t.Id==taskId).Milestones.Single(m=>m.Id==nodeId).Date=target);return true;
  }
- internal void CopyTimelineFrom(PlannerWindow other){TimelineStart=other.TimelineStart;timelineScroll=other.timelineScroll;ShowCompleted=other.ShowCompleted;}
+ internal void CopyTimelineFrom(PlannerWindow other){TimelineStart=other.TimelineStart;timelineScroll=other.timelineScroll;ShowCompleted=other.ShowCompleted;timelineBrowseMin=other.timelineBrowseMin;timelineBrowseMax=other.timelineBrowseMax;timelineBrowseDays=other.timelineBrowseDays;}
  void ChooseTimelineDays(){
   var w=new FormWindow(this,"自定义时间轴范围",370);var input=w.Input("显示天数（1～3650 的整数）",TimelineDays.ToString());
   w.Hint("例如：14 表示两周，180 表示约半年。");
@@ -28,9 +27,9 @@ internal partial class PlannerWindow {
   right.Children.Add(Button("＋ 任务",()=>EditTask(null),true));if(!TasksOnly)right.Children.Add(Button(timelineCollapsed?"展开":"收起",()=>{timelineCollapsed=!timelineCollapsed;Render();}));
   toolbar.Children.Add(right);
   var nav=new StackPanel{Orientation=Orientation.Horizontal};nav.Children.Add(Text("任务时间轴",14,true));
-  nav.Children.Add(Button("‹",()=>{TimelineStart=TimelineStart.AddDays(-TimelineDays);Render();}));
+  nav.Children.Add(Button("‹",()=>{TimelineStart=ViewMath.ShiftTimeline(TimelineStart,-TimelineDays,TimelineDays);Render();}));
   nav.Children.Add(Button("今天",()=>{TimelineStart=DateTime.Today.AddDays(-Math.Max(1,TimelineDays/7));Render();}));
-  nav.Children.Add(Button("›",()=>{TimelineStart=TimelineStart.AddDays(TimelineDays);Render();}));
+  nav.Children.Add(Button("›",()=>{TimelineStart=ViewMath.ShiftTimeline(TimelineStart,TimelineDays,TimelineDays);Render();}));
   var options=new List<string>{"7 天","30 天","90 天"};string selected=TimelineDays+" 天";if(!options.Contains(selected))options.Add(selected);options.Add("自定义…");
   var scale=new ComboBox{Width=100,Margin=new Thickness(5,3,5,3),ItemsSource=options,SelectedItem=selected,ToolTip="Ctrl＋滚轮也可缩放日期刻度"};
   System.Windows.Automation.AutomationProperties.SetName(scale,"时间轴显示天数");
@@ -38,17 +37,47 @@ internal partial class PlannerWindow {
   nav.Children.Add(scale);
   var completed=new CheckBox{Content="已完成",IsChecked=ShowCompleted,VerticalAlignment=VerticalAlignment.Center,Margin=new Thickness(5),Foreground=Brush(Palette.Ink),FontSize=11};
   completed.Click+=(_,_)=>{ShowCompleted=completed.IsChecked==true;Render();};nav.Children.Add(completed);toolbar.Children.Add(nav);grid.Children.Add(toolbar);if(timelineCollapsed&&!TasksOnly)return grid;
+  grid.RowDefinitions.Add(new(){Height=GridLength.Auto});
+  FrameworkElement plotView=BuildTimelinePlot();Grid.SetRow(plotView,1);grid.Children.Add(plotView);
+  var browse=new ScrollBar{Orientation=Orientation.Horizontal,Height=SystemParameters.HorizontalScrollBarHeight,Margin=new Thickness(165,5,0,0),SmallChange=1,LargeChange=TimelineDays,ViewportSize=TimelineDays,ToolTip="左右拖动滑块浏览日期；两端箭头每次移动一天"};
+  System.Windows.Automation.AutomationProperties.SetName(browse,"时间轴横向滚动条");
+  void SetRange(bool extend=false) {
+   double current=TimelineStart.Ticks/(double)TimeSpan.TicksPerDay,padding=Math.Max(90,TimelineDays*2);
+   double earliest=Store.Current.Tasks.Count==0?current:Store.Current.Tasks.Min(t=>t.Start.Date.Ticks)/(double)TimeSpan.TicksPerDay;
+   double latest=Store.Current.Tasks.Count==0?current:Store.Current.Tasks.Max(t=>t.End.Date.Ticks)/(double)TimeSpan.TicksPerDay-TimelineDays+1;
+   if(double.IsNaN(timelineBrowseMin)||timelineBrowseDays!=TimelineDays||current<timelineBrowseMin||current>timelineBrowseMax||extend){
+    timelineBrowseMin=Math.Max(new DateTime(1900,1,1).Ticks/(double)TimeSpan.TicksPerDay,Math.Min(current,earliest)-padding);
+    timelineBrowseMax=Math.Min(new DateTime(9990,1,1).Ticks/(double)TimeSpan.TicksPerDay-TimelineDays,Math.Max(current,latest)+padding);
+   }
+   timelineBrowseDays=TimelineDays;
+   browse.Minimum=timelineBrowseMin;browse.Maximum=timelineBrowseMax;browse.Value=current;
+  }
+  SetRange();
+  browse.ValueChanged+=(_,_)=>{
+   var next=new DateTime((long)Math.Round(browse.Value)*TimeSpan.TicksPerDay);
+   if(next==TimelineStart)return;TimelineStart=next;
+   grid.Children.Remove(plotView);plotView=BuildTimelinePlot();Grid.SetRow(plotView,1);grid.Children.Add(plotView);
+  };
+  browse.Scroll+=(_,e)=>{
+   if(e.ScrollEventType==ScrollEventType.ThumbTrack||e.ScrollEventType==ScrollEventType.ThumbPosition)return;
+   if(Math.Abs(browse.Value-browse.Minimum)<1||Math.Abs(browse.Value-browse.Maximum)<1)SetRange(true);
+  };
+  Grid.SetRow(browse,2);grid.Children.Add(browse);return grid;
+ }
+ double timelineBrowseMin=double.NaN,timelineBrowseMax=double.NaN;
+ int timelineBrowseDays;
+ FrameworkElement BuildTimelinePlot(){
   double width=CalendarWidth,left=165,plot=width-left-12,day=plot/TimelineDays,rowHeight=App.Instance.Appearance.TimelineRowHeight;
   var tasks=Store.Current.Tasks.Where(t=>(ShowCompleted||!t.Completed)&&t.Start.Date<TimelineStart.AddDays(TimelineDays)&&t.End.Date>=TimelineStart).OrderBy(t=>t.Completed).ThenBy(t=>t.End).ToList();
   var canvas=new Canvas{VerticalAlignment=VerticalAlignment.Top,HorizontalAlignment=HorizontalAlignment.Left,Width=width,Height=Math.Max(125,36+tasks.Count*rowHeight),Background=Brush("#FFFFFF",.22)};
   ScrollViewer? scroll=null;
-  string rangeFormat=TimelineStart.Year!=TimelineStart.AddDays(TimelineDays-1).Year?"yyyy/M/d":"M/d";
+  string rangeFormat=TimelineStart.Year!=DateTime.Today.Year||TimelineStart.Year!=TimelineStart.AddDays(TimelineDays-1).Year?"yyyy/M/d":"M/d";
   At(canvas,Text(TimelineStart.ToString(rangeFormat)+" — "+TimelineStart.AddDays(TimelineDays-1).ToString(rangeFormat),10,true),7,10);
   int targetStep=Math.Max(1,(int)Math.Ceiling(TimelineDays*62/plot));
   int step=new[]{1,2,3,7,14,30,60,90,180,365,730}.FirstOrDefault(v=>v>=targetStep,730);
   if(TimelineDays<=180)for(int i=0;i<TimelineDays;i++){var date=TimelineStart.AddDays(i);if(date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)At(canvas,new Rectangle{Width=day,Height=canvas.Height,Fill=Brush(Palette.Ink,.025),IsHitTestVisible=false},left+i*day,0);}
   for(int i=0;i<TimelineDays;i+=step){double x=left+i*day;canvas.Children.Add(new Line{X1=x,Y1=30,X2=x,Y2=canvas.Height,Stroke=Brush(Palette.Ink,.08),IsHitTestVisible=false});At(canvas,Text(TimelineStart.AddDays(i).ToString(TimelineDays>365?"yyyy/M":"M/d"),10),x+2,10);}
-  if(tasks.Count==0){At(canvas,Text(Store.Current.Tasks.Count==0?"把重要的事放上时间轴":"这个日期范围内没有任务",16,true),18,52);At(canvas,Text("每项任务一行 · 点击编辑 · Ctrl＋滚轮缩放日期",12),18,84);}
+  if(tasks.Count==0){At(canvas,Text(Store.Current.Tasks.Count==0?"把重要的事放上时间轴":"这个日期范围内没有任务",16,true),18,52);At(canvas,Text("拖动日期刻度或空白处浏览 · Ctrl＋滚轮缩放日期",12),18,84);}
   for(int i=0;i<tasks.Count;i++){
    var t=tasks[i];double y=36+i*rowHeight,center=y+rowHeight/2-7;
    canvas.Children.Add(new Line{X1=0,Y1=y+rowHeight-1,X2=width,Y2=y+rowHeight-1,Stroke=Brush(Palette.Ink,.09),IsHitTestVisible=false});
@@ -70,7 +99,7 @@ internal partial class PlannerWindow {
    var visibleNodes=t.Milestones.Where(m=>m.Date.Date>=TimelineStart&&m.Date.Date<TimelineStart.AddDays(TimelineDays)).OrderBy(m=>m.Date).ToList();
    foreach(var m in visibleNodes){
     int offset=(m.Date.Date-TimelineStart).Days;if(offset<0||offset>=TimelineDays)continue;double x=left+(offset+.5)*day;
-    var marker=Diamond(m.Completed?Palette.Ink:"#FFFFFF");marker.Cursor=Cursors.Hand;marker.Focusable=true;marker.ToolTip=m.Title+" · "+m.Date.ToString("yyyy/MM/dd")+"\n"+m.Notes+"\n点击编辑 · 拖动预览，确认后修改日期";
+    var marker=Diamond(m.Completed?Palette.Ink:"#FFFFFF");marker.Cursor=Cursors.Hand;marker.Focusable=true;marker.ToolTip=m.Title+" · "+m.Date.ToString("yyyy/MM/dd")+"\n"+m.Notes+"\n点击编辑 · 拖动预览，松手保存；Ctrl+Z 撤销";
     System.Windows.Automation.AutomationProperties.SetName(marker,"节点："+m.Title);At(canvas,marker,x-7,center-7);
     // Labels are placed after markers, with collision-aware widths.
     Point? down=null;bool moved=false,valid=false;DateTime proposed=m.Date;Polygon? ghost=null;Border? bubble=null;TextBlock? bubbleText=null;Canvas? previewLayer=null;
@@ -103,12 +132,46 @@ internal partial class PlannerWindow {
   }
   int todayOffset=(DateTime.Today-TimelineStart).Days;
   if(todayOffset>=0&&todayOffset<TimelineDays){double x=left+(todayOffset+.5)*day;canvas.Children.Add(new Line{X1=x,Y1=28,X2=x,Y2=canvas.Height,Stroke=Brush(Palette.Accent,.7),StrokeThickness=1.5,StrokeDashArray=new DoubleCollection{3,3},IsHitTestVisible=false});var today=Text("今天",10,true,Palette.Accent);today.IsHitTestVisible=false;At(canvas,today,x-11,0);}
-  canvas.MouseLeftButtonDown+=(_,e)=>{if(e.ClickCount!=2||NodeDragging)return;var p=e.GetPosition(canvas);int row=(int)Math.Floor((p.Y-36)/rowHeight);if(row>=0&&row<tasks.Count&&p.X>=left){var t=tasks[row];var date=TimelineStart.AddDays(Math.Clamp((int)((p.X-left)/day),0,TimelineDays-1));Dialogs.EditSavedMilestone(this,t,null,date);e.Handled=true;}};
-  scroll=new ScrollViewer{VerticalContentAlignment=VerticalAlignment.Top,HorizontalContentAlignment=HorizontalAlignment.Left,Content=canvas,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled,CanContentScroll=false,ToolTip="Ctrl＋滚轮缩放日期 · 普通滚轮上下浏览任务"};
+  canvas.MouseLeftButtonDown+=(_,e)=>{
+   if(NodeDragging||TimelinePanning)return;var p=e.GetPosition(canvas);
+   if(p.X<left||p.X>left+plot)return;
+   int row=(int)Math.Floor((p.Y-36)/rowHeight);
+   if(e.ClickCount==2&&row>=0&&row<tasks.Count){
+    var t=tasks[row];var date=TimelineStart.AddDays(Math.Clamp((int)((p.X-left)/day),0,TimelineDays-1));Dialogs.EditSavedMilestone(this,t,null,date);e.Handled=true;return;
+   }
+   BeginTimelinePan(e.GetPosition(this),plot);e.Handled=true;
+  };
+  scroll=new ScrollViewer{VerticalContentAlignment=VerticalAlignment.Top,HorizontalContentAlignment=HorizontalAlignment.Left,Content=canvas,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled,CanContentScroll=false,ToolTip="拖动日期刻度或空白处左右浏览 · Ctrl＋滚轮缩放日期 · 普通滚轮上下浏览任务"};
   System.Windows.Automation.AutomationProperties.SetName(scroll,"任务时间轴内容");bool ready=false;double restore=timelineScroll;
   scroll.Loaded+=(_,_)=>{scroll.ScrollToVerticalOffset(restore);ready=true;};scroll.ScrollChanged+=(_,_)=>{if(ready)timelineScroll=scroll.VerticalOffset;};
   scroll.PreviewMouseWheel+=(_,e)=>{if((Keyboard.Modifiers&ModifierKeys.Control)==0)return;e.Handled=true;ZoomTimelineAt((e.GetPosition(canvas).X-left)/plot,Math.Sign(e.Delta));};
-  Grid.SetRow(scroll,1);grid.Children.Add(scroll);return grid;
+  return scroll;
+ }
+ void BeginTimelinePan(Point origin,double plot) {
+  var before=TimelineStart;int days=TimelineDays;bool moved=false,finished=false;
+  var previousCursor=Cursor;
+  void Finish(bool cancel) {
+   if(finished)return;finished=true;
+   PreviewMouseMove-=Move;PreviewMouseLeftButtonUp-=Up;PreviewKeyDown-=Cancel;LostMouseCapture-=Lost;
+   TimelinePanning=false;Cursor=previousCursor;
+   if(IsMouseCaptured)ReleaseMouseCapture();
+   if(cancel)TimelineStart=before;
+   if(moved)Render();
+  }
+  void Move(object sender,MouseEventArgs e) {
+   if(e.LeftButton!=MouseButtonState.Pressed){Finish(false);return;}
+   double delta=e.GetPosition(this).X-origin.X;
+   if(!moved&&Math.Abs(delta)<4)return;moved=true;
+   var next=ViewMath.PanTimeline(before,days,delta,plot);
+   if(next!=TimelineStart){TimelineStart=next;Render();}
+   e.Handled=true;
+  }
+  void Up(object sender,MouseButtonEventArgs e){Finish(false);e.Handled=true;}
+  void Cancel(object sender,KeyEventArgs e){if(e.Key==Key.Escape){Finish(true);e.Handled=true;}}
+  void Lost(object sender,MouseEventArgs e){if(!IsMouseCaptured)Finish(true);}
+  TimelinePanning=true;Cursor=Cursors.ScrollWE;
+  PreviewMouseMove+=Move;PreviewMouseLeftButtonUp+=Up;PreviewKeyDown+=Cancel;LostMouseCapture+=Lost;
+  if(!CaptureMouse())Finish(true);
  }
  Polygon Diamond(string fill)=>new(){Points=new PointCollection{new(7,0),new(14,7),new(7,14),new(0,7)},Fill=Brush(fill),Stroke=Brush(Palette.Ink),StrokeThickness=1.5,Width=14,Height=14};
 }

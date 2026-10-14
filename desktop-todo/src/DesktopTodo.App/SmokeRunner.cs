@@ -48,6 +48,7 @@ internal static class SmokeRunner {
    if(app.Store.Current.Tasks.Last().Milestones.Count!=1)throw new Exception("Node editor failed to persist");
    ExerciseDialog(()=>Dialogs.Settings(app.Planner),form=>{},"09-settings");
    if(Environment.GetCommandLineArgs().Contains("--interactions"))await InteractionChecks.Run(app,CaptureNow,results);
+   if(Environment.GetCommandLineArgs().Contains("--update-checks"))await UpdateChecks.Run(app,CaptureNow,results);
    app.Planner.Width=760;app.Planner.Height=630;app.Planner.Render();await Capture(app.Planner,"10-small-window");
    app.Planner.Width=1050;app.Planner.Height=820;app.Planner.Render();
    for(int i=0;i<3;i++){app.SetDetached(true);app.TaskWindow!.Hide();app.TaskWindow.Show();app.SetDetached(false);}

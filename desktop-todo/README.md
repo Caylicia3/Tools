@@ -1,25 +1,28 @@
 # 日程管理 · DesktopTodo
 
-面向 **Windows 11 64 位电脑**的桌面日程工具，把周／月计划和任务截止时间放在同一个面板中。
+面向 **Windows 10／11 64 位电脑**的桌面日程工具，把周／月计划和任务截止时间放在同一个面板中。
 
-[下载安装版](https://github.com/Caylicia3/Tools/releases/download/desktop-todo-v0.1.1/DesktopTodo-0.1.1-win-x64-Setup.exe) · [下载免安装版](https://github.com/Caylicia3/Tools/releases/download/desktop-todo-v0.1.1/DesktopTodo-0.1.1-win-x64.zip) · [查看版本说明](https://github.com/Caylicia3/Tools/releases/tag/desktop-todo-v0.1.1)
+[下载已发布版本与查看说明](https://github.com/Caylicia3/Tools/releases)
 
-当前版本：**0.1.1 预览版**。无需账号，日程数据保存在本机，运行组件随包提供。
+本分支版本：**0.1.2 预览版**，实际可下载版本以 Releases 页面为准。无需账号，日程数据保存在本机，运行组件随包提供。
 
 ## 主要功能
 
 - **周／月日程**：按真实日期浏览，支持时间重叠、每周重复、拖选新增和移动日程。
 - **任务时间轴**：每项任务独立一行，清晰显示起止日期、截止时间和里程碑节点。
+- **左右浏览时间轴**：拖动底部横向滚动条，或拖动日期刻度／空白处；仅移动显示范围，实际任务和节点日期不变。
 - **可调视图**：Ctrl＋滚轮缩放，时间轴支持 7／30／90 天和自定义 1～3650 天。
 - **撤销与重做**：共享最近 100 步内容操作，支持 Ctrl+Z、Ctrl+Y。
-- **灵活提醒**：任务和节点可自定义提前天数、提醒时刻，完成后停止提醒。
+- **灵活提醒**：任务和节点可自定义提前天数、提醒时刻，也可分别选择「不提醒」；关闭任务截止提醒不会关闭节点提醒，完成后停止提醒。
 - **四套主题**：雪景紫、海岸蓝、秋日橙、林间绿；颜色、背景不透明度、任务条粗细和行高均可实时预览。
-- **桌面窗口**：支持拆分、合并、置顶、任务栏恢复和一键退出。
+- **桌面窗口**：支持拆分、合并、置顶、最大化／还原、任务栏恢复和一键退出。
 - **本地备份**：支持导出与恢复；升级沿用已有数据目录，卸载保留数据。
 
 ## 下载与安装
 
-普通用户下载 Release 中的 **DesktopTodo-0.1.1-win-x64-Setup.exe** 即可，无需安装开发环境。
+普通用户优先下载标准版。标准版保留 CET 硬件栈保护；单独提供的 Compatibility 兼容版仅关闭本程序的 CET 标记，不改变 Windows 安全设置。两者功能与数据格式一致，可在同一安装目录升级替换。
+
+下载 Release 中的 **DesktopTodo-版本号-win-x64-Setup.exe** 即可，无需安装开发环境。
 
 1. 双击安装包，自选程序目录和数据目录。
 2. 数据目录需位于程序目录之外；新安装默认建议放在程序目录旁边。
@@ -37,13 +40,15 @@
 | 切换周／月 | 点击上方「周」「月」 |
 | 内容缩放 | 鼠标移入图表，按住 Ctrl 滚动滚轮；普通滚轮上下浏览 |
 | 编辑任务 | 点击任务名称或彩色任务条，任务条不能拖动或拉伸 |
-| 移动节点 | 拖动菱形查看目标日期，松开后确认才保存 |
+| 移动节点 | 拖动菱形查看目标日期，有效范围内松手即保存；Esc 取消，Ctrl+Z 撤销 |
 | 撤销／重做 | Ctrl+Z ／ Ctrl+Y，也支持 Ctrl+Shift+Z 重做 |
+| 最大化／还原 | 点击右上角「□／❐」，铺满当前屏幕工作区并保留任务栏，再点恢复 |
+| 左右浏览时间轴 | 拖动下方横向滚动条，或拖动日期刻度和空白处；滚动条端部可继续扩展日期范围 |
 | 最小化 | 点击「—」，从任务栏恢复；Win+D 也会暂时最小化 |
 | 完全退出 | 点击主面板「×」或按 Alt+F4，全部面板和后台提醒一起退出 |
 | 修改外观 | 设置中调整并实时预览；保存保留，取消或 Esc 恢复 |
 
-关闭程序期间不会弹出提醒；重新运行时会汇总错过的提醒。系统通知设置会影响横幅是否显示。
+关闭程序期间不会弹出提醒；重新运行时会汇总错过的提醒。默认使用托盘提醒，点击提醒可显示面板。设置中可选「系统通知」，保存后生效；该方式需要注册 Windows 通知入口，可能触发安全软件提示。Windows 的通知与勿扰设置会影响横幅是否显示。
 
 自定义颜色示例：**#B7ABD4**，即 # 后接 6 位数字或 A～F 字母，也可直接点击「选色」。
 
@@ -67,15 +72,16 @@
 .\build.ps1 -Action build
 .\build.ps1 -Action test
 .\build.ps1 -Action publish
+.\build.ps1 -Action publish -Compatibility
 ~~~
 
 首次构建会从 NuGet 下载依赖。构建缓存、临时文件和输出都放在项目目录内；把项目放到空间充足的磁盘即可。-Offline 用于已另行准备好 .cache/package-feed 离线包的环境，首次构建不加该参数。
 
-发布结果位于 artifacts/DesktopTodo。完整文件夹可直接运行；安装包使用 Inno Setup 6.7 编译 installer/DesktopTodo.iss。编译安装包前：
+标准版发布结果位于 artifacts/DesktopTodo，兼容版位于 artifacts/DesktopTodo-Compatibility。完整文件夹可直接运行；安装包使用 Inno Setup 6.7 编译 installer/DesktopTodo.iss。编译安装包前：
 
 1. 将需要随包提供的 README.md、USAGE.txt、TEST-REPORT.md 和 THIRD-PARTY-NOTICES 复制到 artifacts/DesktopTodo。
 2. 从 [Inno Setup 翻译页](https://jrsoftware.org/files/istrans/)取得 ChineseSimplified.isl，放到 .tools/InnoSetup/Languages。
-3. 使用 Inno Setup 的 ISCC.exe 编译 installer/DesktopTodo.iss。
+3. 使用 Inno Setup 的 ISCC.exe 编译 installer/DesktopTodo.iss。兼容版使用 /DPayload=..\artifacts\DesktopTodo-Compatibility /DOutputName=DesktopTodo-0.1.2-win-x64-Compatibility-Setup 指定对应目录和输出名。两种安装包保留同一安装标识。
 
 框架：WPF / .NET 10；存储：SQLite；系统通知：Windows App SDK。第三方组件的许可说明随发行文件提供。
 

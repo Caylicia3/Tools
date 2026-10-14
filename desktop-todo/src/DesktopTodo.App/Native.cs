@@ -63,7 +63,26 @@ internal static class Native {
   return $"visible={IsWindowVisible(h)} minimized={IsIconic(h)} owner={GetWindowLongPtr(h,-8)} style={GetWindowLongPtr(h,-16):X} bounds={r}";
  }
  public static void Activate(Window window) {
-  if(window.WindowState==WindowState.Minimized)window.WindowState=WindowState.Normal;window.Show();var h=new WindowInteropHelper(window).Handle;ShowWindow(h,5);SetForegroundWindow(h);window.Activate();
+  if(window.WindowState==WindowState.Minimized)window.WindowState=window is PlannerWindow panel?panel.LastVisibleState:WindowState.Normal;window.Show();var h=new WindowInteropHelper(window).Handle;ShowWindow(h,5);SetForegroundWindow(h);window.Activate();
+ }
+ [DllImport("user32.dll")] static extern IntPtr MonitorFromWindow(IntPtr hwnd,uint flags);
+ [DllImport("user32.dll",CharSet=CharSet.Auto)] static extern bool GetMonitorInfo(IntPtr monitor,ref MONITORINFO info);
+ [StructLayout(LayoutKind.Sequential)] struct POINT {public int X,Y;}
+ [StructLayout(LayoutKind.Sequential)] struct MINMAXINFO {public POINT Reserved,MaxSize,MaxPosition,MinTrackSize,MaxTrackSize;}
+ [StructLayout(LayoutKind.Sequential)] struct MONITORINFO {public int Size;public RECT Monitor,Work;public uint Flags;}
+ public static void ConstrainMaximize(Window window) {
+  var hwnd=new WindowInteropHelper(window).Handle;
+  HwndSource.FromHwnd(hwnd)?.AddHook((IntPtr h,int message,IntPtr w,IntPtr l,ref bool handled)=>{
+   if(message!=0x24)return IntPtr.Zero; // WM_GETMINMAXINFO uses physical monitor pixels.
+   var info=new MONITORINFO{Size=Marshal.SizeOf<MONITORINFO>()};
+   if(!GetMonitorInfo(MonitorFromWindow(h,2),ref info))return IntPtr.Zero;
+   var limits=Marshal.PtrToStructure<MINMAXINFO>(l);var dpi=VisualTreeHelper.GetDpi(window);
+   limits.MaxPosition=new(){X=info.Work.Left-info.Monitor.Left,Y=info.Work.Top-info.Monitor.Top};
+   limits.MaxSize=new(){X=info.Work.Right-info.Work.Left,Y=info.Work.Bottom-info.Work.Top};
+   limits.MaxTrackSize=limits.MaxSize;
+   limits.MinTrackSize=new(){X=Math.Min(limits.MaxSize.X,(int)Math.Ceiling(window.MinWidth*dpi.DpiScaleX)),Y=Math.Min(limits.MaxSize.Y,(int)Math.Ceiling(window.MinHeight*dpi.DpiScaleY))};
+   Marshal.StructureToPtr(limits,l,false);handled=true;return IntPtr.Zero;
+  });
  }
  public static void PlaceOnScreen(Window window) {
   var x=SystemParameters.VirtualScreenLeft;var y=SystemParameters.VirtualScreenTop;

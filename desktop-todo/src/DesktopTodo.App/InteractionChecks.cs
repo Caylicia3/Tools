@@ -20,7 +20,7 @@ internal static class InteractionChecks {
   var originalSettings=System.Text.Json.JsonSerializer.Serialize(app.Store.Current.Settings);
   app.SetDetached(true);app.Store.Update(s=>s.Settings.Detached=false,false); // Exercise both visible panels while keeping the combined preview visible.
   Settings(form=>{
-   form.Fields.Children.OfType<ComboBox>().Single().SelectedItem="林间绿";
+   form.Fields.Children.OfType<ComboBox>().First().SelectedItem="林间绿";
    var sliders=form.Fields.Children.OfType<Slider>().ToArray();sliders[0].Value=42;sliders[1].Value=22;sliders[2].Value=36;
    Check(app.Appearance.Theme=="林间绿"&&app.Appearance.Opacity==.42&&app.Appearance.TimelineBarHeight==22&&app.Appearance.TimelineRowHeight==36,"Live appearance did not update");
    Check(app.Store.Current.Settings.Opacity!=.42,"Preview incorrectly persisted");
@@ -34,7 +34,7 @@ internal static class InteractionChecks {
   Check(app.Appearance.Theme=="雪景紫"&&app.Appearance.Opacity==.95,"Cancel did not restore appearance");
   app.SetDetached(false);Check(System.Text.Json.JsonSerializer.Serialize(app.Store.Current.Settings)==originalSettings,"Canceled settings modified stored preferences");
   Settings(form=>{
-   form.Fields.Children.OfType<ComboBox>().Single().SelectedItem="海岸蓝";
+   form.Fields.Children.OfType<ComboBox>().First().SelectedItem="海岸蓝";
    var sliders=form.Fields.Children.OfType<Slider>().ToArray();sliders[0].Value=88;sliders[1].Value=6;sliders[2].Value=144;
    capture(app.Planner,"14-live-preview-thin-tall");
   },true);
@@ -42,7 +42,7 @@ internal static class InteractionChecks {
   app.Store.Update(s=>{s.Settings.Theme="雪景紫";s.Settings.Background="";s.Settings.Foreground="";s.Settings.Accent="";s.Settings.Opacity=.95;s.Settings.TimelineBarHeight=11;s.Settings.TimelineRowHeight=36;});ThemeResources.Apply(app.Appearance);
   results.Add("appearance-preview-save-cancel-invalid-color-independent-sliders");
   foreach(var theme in Palette.All){
-   Settings(form=>{form.Fields.Children.OfType<ComboBox>().Single().SelectedItem=theme.Name;var fields=Find<TextBox>(form).Where(x=>x.ToolTip is string tip&&tip.Contains("#B7ABD4")).ToArray();Check(fields[0].Text==theme.Background&&fields[1].Text==theme.Ink&&fields[2].Text==theme.Accent,"Preset color values did not synchronize");
+   Settings(form=>{form.Fields.Children.OfType<ComboBox>().First().SelectedItem=theme.Name;var fields=Find<TextBox>(form).Where(x=>x.ToolTip is string tip&&tip.Contains("#B7ABD4")).ToArray();Check(fields[0].Text==theme.Background&&fields[1].Text==theme.Ink&&fields[2].Text==theme.Accent,"Preset color values did not synchronize");
     var editor=new FormWindow(form,"主题一致性检查");editor.Input("输入框","检查文字");editor.Show();editor.UpdateLayout();
     try{Check(((SolidColorBrush)editor.Background).Color==(Color)ColorConverter.ConvertFromString(theme.Background),"Editor background theme mismatch");Check(((SolidColorBrush)Find<TextBox>(editor).First().Foreground).Color==(Color)ColorConverter.ConvertFromString(theme.Ink),"Editor input theme mismatch");}finally{editor.Close();}
    },false);
@@ -86,17 +86,16 @@ internal static class InteractionChecks {
   app.Store.Edit("添加交互检查任务",s=>s.Tasks.Add(testTask));await System.Threading.Tasks.Task.Delay(150);
   var marker=Named<Polygon>(app.Planner,"节点：拖动检查节点");var canvas=(Canvas)VisualTreeHelper.GetParent(marker);double perDay=(canvas.Width-165-12)/30;
   var original=testTask.Milestones[0].Date;var target=original.AddDays(3);int history=app.Store.UndoCount;
-  async System.Threading.Tasks.Task Drag(bool accept){
+  async System.Threading.Tasks.Task Drag(){
    marker=Named<Polygon>(app.Planner,"节点：拖动检查节点");NativeTestInput.PointAt(marker,7,7);NativeTestInput.Down();await System.Threading.Tasks.Task.Delay(70);
    var screen=marker.PointToScreen(new Point(7+perDay*3,7));NativeTestInput.Move((int)screen.X,(int)screen.Y);await System.Threading.Tasks.Task.Delay(100);
    Check(app.Planner.NodeDragging,"Node did not enter preview drag");
-   Check(app.Store.Current.Tasks.Single(t=>t.Id==testTask.Id).Milestones[0].Date==original,"Node persisted before confirmation");
+   Check(app.Store.Current.Tasks.Single(t=>t.Id==testTask.Id).Milestones[0].Date==original,"Node persisted before mouse release");
    Check(Find<TextBlock>(app.Planner).Any(x=>x.Text==target.ToString("yyyy/MM/dd")),"Node preview date missing");
    capture(app.Planner,"18-node-date-preview");NativeTestInput.Up();await System.Threading.Tasks.Task.Delay(100);
-   Check(NativeTestInput.AnswerNodeMove(accept),"Node confirmation missing");await System.Threading.Tasks.Task.Delay(120);
+   Check(!NativeTestInput.AnswerNodeMove(false),"Unexpected node confirmation");await System.Threading.Tasks.Task.Delay(120);
   }
-  await Drag(false);Check(app.Store.UndoCount==history&&app.Store.Current.Tasks.Single(t=>t.Id==testTask.Id).Milestones[0].Date==original,"Canceled node move changed data");
-  await Drag(true);Check(app.Store.UndoCount==history+1&&app.Store.Current.Tasks.Single(t=>t.Id==testTask.Id).Milestones[0].Date==target,"Confirmed node move not saved");
+  await Drag();Check(app.Store.UndoCount==history+1&&app.Store.Current.Tasks.Single(t=>t.Id==testTask.Id).Milestones[0].Date==target,"Released node move not saved");
   app.Store.Undo();Check(app.Store.Current.Tasks.Single(t=>t.Id==testTask.Id).Milestones[0].Date==original,"Node undo failed");
   await System.Threading.Tasks.Task.Delay(140);app.Planner.UpdateLayout();var bar=Named<Border>(app.Planner,"任务条：交互检查任务");NativeTestInput.PointAt(bar,20,11);NativeTestInput.Down();await System.Threading.Tasks.Task.Delay(50);var barPoint=bar.PointToScreen(new Point(70,11));NativeTestInput.Move((int)barPoint.X,(int)barPoint.Y);await System.Threading.Tasks.Task.Delay(70);NativeTestInput.Up();await System.Threading.Tasks.Task.Delay(120);
   Check(!app.Windows.OfType<FormWindow>().Any()&&app.Store.Current.Tasks.Single(t=>t.Id==testTask.Id).Start==testTask.Start,"Task bar drag must do nothing");
@@ -111,7 +110,7 @@ internal static class InteractionChecks {
    NativeTestInput.Up();await System.Threading.Tasks.Task.Delay(120);
    Check(!app.Planner.NodeDragging&&app.Store.UndoCount==history&&app.Store.Current.Tasks.Single(t=>t.Id==testTask.Id).Milestones[0].Date==original,"Canceled/invalid node drag committed: "+mode);
   }
-  results.Add("physical-node-preview-confirm-undo-escape-outside-range-same-date-zoom-lock-task-bar-locked");
+  results.Add("physical-node-preview-direct-save-undo-escape-outside-range-same-date-zoom-lock-task-bar-locked");
   foreach(int count in new[]{1,14,3650}){app.ChangeView(p=>p.TimelineDays=count);app.Planner.UpdateLayout();capture(app.Planner,"days-"+count);}
   app.ChangeView(p=>p.TimelineDays=30);app.FlushViews();
   app.SetDetached(true);app.Planner.WindowState=WindowState.Minimized;await System.Threading.Tasks.Task.Delay(140);Check(app.Planner.WindowState==WindowState.Minimized,"Minimize failed");Native.Activate(app.Planner);await System.Threading.Tasks.Task.Delay(140);Check(app.Planner.WindowState==WindowState.Normal,"Taskbar restore failed");

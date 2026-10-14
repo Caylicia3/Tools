@@ -177,6 +177,32 @@ Test("Large content has no artificial item limit",()=>{
  Validation.State(s);Assert(CalendarLogic.Occurrences(s,D(2026,10,12),D(2026,10,13)).Count==1000);
 });
 
+Test("Task and node reminder switches remain independent through save undo and reopen",()=>{
+ var dir=Path.Combine(root,Guid.NewGuid().ToString("N"));
+ var task=new TodoTask{Title="Task",Start=D(2028,2,20),End=D(2028,3,1),Milestones=[new(){Title="Node",Date=D(2028,3,1)}]};
+ using(var st=new Store(dir)){
+  st.Edit("Add",s=>s.Tasks.Add(task));st.Edit("Task off",s=>s.Tasks[0].Reminder=false);
+  Assert(ReminderLogic.Due(st.Current,D(2028,3,1),D(2028,3,1,10)).Single().Title=="Node");
+  st.Edit("Node off",s=>s.Tasks[0].Milestones[0].Reminder=false);Assert(ReminderLogic.Due(st.Current,D(2028,3,1),D(2028,3,1,10)).Count==0);
+  st.Undo();Assert(!st.Current.Tasks[0].Reminder&&st.Current.Tasks[0].Milestones[0].Reminder);st.Redo();
+ }
+ using(var st=new Store(dir))Assert(!st.Current.Tasks[0].Reminder&&!st.Current.Tasks[0].Milestones[0].Reminder);
+});
+Test("Timeline pan shifts viewport across leap day in either direction",()=>{
+ Assert(ViewMath.PanTimeline(D(2028,3,2),30,40,600)==D(2028,2,29));
+ Assert(ViewMath.PanTimeline(D(2028,2,29),30,-40,600)==D(2028,3,2));
+ Assert(ViewMath.PanTimeline(D(2028,3,2),30,2,600)==D(2028,3,2));
+ Assert(ViewMath.PanTimeline(D(2028,3,2),30,40,0)==D(2028,3,2));
+});
+Test("Timeline pan clamps safely at supported calendar limits",()=>{
+ Assert(ViewMath.PanTimeline(D(1900,1,1),3650,100000,10)==D(1900,1,1));
+ var max=D(9990,1,1).AddDays(-3650);
+ Assert(ViewMath.PanTimeline(max,3650,-100000,10)==max);
+});
+Test("Old and new settings default to tray without system registration opt in",()=>{
+ var p=System.Text.Json.JsonSerializer.Deserialize<Preferences>("{}")!;
+ Assert(!p.UseSystemNotifications&&p.Notifications);
+});
 Console.WriteLine($"RESULT {passed} passed; {failed} failed");
 File.WriteAllText(Path.Combine(root,"results.txt"),$"{passed} passed; {failed} failed");
 Environment.ExitCode=failed==0?0:1;

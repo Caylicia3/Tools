@@ -23,7 +23,7 @@ public partial class App : Application {
  internal bool NotificationCheck { get; private set; }
  internal uint LastNotificationId { get; private set; }
  internal string DataDir { get; private set; } = "";
- internal string NotificationStatus { get; private set; } = "系统通知";
+ internal string NotificationStatus { get; private set; } = "托盘提醒";
  System.Windows.Forms.NotifyIcon? tray;
  Mutex? singleton;
  DispatcherTimer? clock;
@@ -57,14 +57,11 @@ public partial class App : Application {
    ThemeResources.Apply(Store.Current.Settings);
    Store.Changed+=()=>ThemeResources.Apply(Appearance);
    if(e.Args.Contains("--demo") && Store.Current.Events.Count==0 && Store.Current.Tasks.Count==0) Store.Save(Demo.Create(DateTime.Now),false);
-   if(Smoke) Store.Update(s=>{s.Settings.DesktopMode=false;s.Settings.Notifications=false;},false);
+   if(Smoke) Store.Update(s=>{s.Settings.DesktopMode=false;s.Settings.Notifications=NotificationCheck;s.Settings.UseSystemNotifications=e.Args.Contains("--system-notifications");},false);
    SetupTray();
-   if(!Smoke || NotificationCheck) {
-    try { AppNotificationManager.Default.NotificationInvoked+=(_,_)=>Dispatcher.BeginInvoke(ShowPanels); AppNotificationManager.Default.Register("日程管理",new Uri(Path.Combine(AppContext.BaseDirectory,"Assets","app.png"))); sdkNotifications=true; }
-    catch(Exception ex) { NotificationStatus="系统托盘通知（兼容模式）"; Log(ex); }
-   }
    Planner=new PlannerWindow(false); MainWindow=Planner; Planner.Show();
    if(Store.Current.Settings.Detached) SetDetached(true,false);
+   ConfigureNotifications();
    clock=new DispatcherTimer { Interval=TimeSpan.FromSeconds(10) };
    clock.Tick+=(_,_)=>Tick(); clock.Start();
    SystemEvents.PowerModeChanged+=PowerChanged;
@@ -78,6 +75,7 @@ public partial class App : Application {
  void SetupTray() {
   tray=new System.Windows.Forms.NotifyIcon { Text="日程管理 · 周计划与时间轴",Icon=System.Drawing.Icon.ExtractAssociatedIcon(Environment.ProcessPath!) ?? System.Drawing.SystemIcons.Application,Visible=true };
   tray.DoubleClick+=(_,_)=>Dispatcher.Invoke(ShowPanels);
+  tray.BalloonTipClicked+=(_,_)=>Dispatcher.Invoke(ShowPanels);
   var menu=new System.Windows.Forms.ContextMenuStrip();
   menu.Items.Add("显示日程",null,(_,_)=>Dispatcher.Invoke(()=>Native.Activate(Planner)));
   menu.Items.Add("显示时间轴",null,(_,_)=>Dispatcher.Invoke(()=>{if(TaskWindow!=null) Native.Activate(TaskWindow);else {Planner.ShowTimeline();Native.Activate(Planner);}}));
@@ -95,6 +93,28 @@ public partial class App : Application {
   if(detached && TaskWindow==null) { TaskWindow=new PlannerWindow(true); TaskWindow.CopyTimelineFrom(Planner); TaskWindow.Show(); }
   if(!detached && TaskWindow!=null) { var old=TaskWindow;Planner.CopyTimelineFrom(old);TaskWindow=null;old.AllowClose=true;old.Close(); }
   Planner.Render();
+ }
+ void NotificationInvoked(AppNotificationManager sender,AppNotificationActivatedEventArgs args)=>Dispatcher.BeginInvoke(ShowPanels);
+ internal void ConfigureNotifications() {
+  bool want=Store.Current.Settings.Notifications&&Store.Current.Settings.UseSystemNotifications&&(!Smoke||NotificationCheck);
+  if(!want) {
+   if(sdkNotifications)StopSystemNotifications();
+   NotificationStatus=Store.Current.Settings.Notifications?"托盘提醒":"提醒已关闭";return;
+  }
+  if(sdkNotifications)return;
+  try {
+   AppNotificationManager.Default.NotificationInvoked+=NotificationInvoked;
+   AppNotificationManager.Default.Register("日程管理",new Uri(Path.Combine(AppContext.BaseDirectory,"Assets","app.png")));
+   sdkNotifications=true;NotificationStatus="系统通知";
+  } catch(Exception ex) {
+   AppNotificationManager.Default.NotificationInvoked-=NotificationInvoked;
+   NotificationStatus="托盘提醒（系统通知不可用）";Log(ex);
+  }
+ }
+ void StopSystemNotifications() {
+  try {AppNotificationManager.Default.RemoveAllAsync().AsTask().Wait(1000);AppNotificationManager.Default.Unregister();}
+  catch(Exception ex){Log(ex);}
+  finally {AppNotificationManager.Default.NotificationInvoked-=NotificationInvoked;sdkNotifications=false;}
  }
  internal void Notify(string title,string body) {
   if(Smoke && !NotificationCheck) return;
@@ -130,7 +150,7 @@ public partial class App : Application {
   if(Exiting) return;
   Exiting=true; clock?.Stop(); try{FlushViews();}catch(Exception ex){Log(ex);}
   Planner?.SaveBounds();TaskWindow?.SaveBounds();
-  if(sdkNotifications) {try {AppNotificationManager.Default.RemoveAllAsync().AsTask().Wait(1000);AppNotificationManager.Default.Unregister();}catch(Exception ex){Log(ex);}}
+  if(sdkNotifications)StopSystemNotifications();
   Shutdown();
  }
  protected override void OnExit(ExitEventArgs e) {

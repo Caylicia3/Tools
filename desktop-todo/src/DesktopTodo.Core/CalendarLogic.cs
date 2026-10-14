@@ -122,6 +122,16 @@ public static class ReminderLogic {
  }
 }
 public static class ViewMath {
+ public static DateTime ShiftTimeline(DateTime start,double offsetDays,int days) {
+  double min=new DateTime(1900,1,1).Ticks/(double)TimeSpan.TicksPerDay;
+  double max=new DateTime(9990,1,1).Ticks/(double)TimeSpan.TicksPerDay-days;
+  double serial=start.Date.Ticks/(double)TimeSpan.TicksPerDay;
+  return new DateTime((long)(Math.Clamp(serial+offsetDays,min,max)*TimeSpan.TicksPerDay)).Date;
+ }
+ public static DateTime PanTimeline(DateTime start,int days,double delta,double plot) {
+  if(!double.IsFinite(delta)||!double.IsFinite(plot)||plot<=0)return start.Date;
+  return ShiftTimeline(start,-Math.Round(delta/plot*days,MidpointRounding.AwayFromZero),days);
+ }
  public static int ZoomDays(int days,int direction)=>direction>0?Math.Max(1,Math.Min(days-1,(int)Math.Floor(days/1.2))):Math.Min(3650,Math.Max(days+1,(int)Math.Ceiling(days*1.2)));
  public static DateTime AnchoredStart(DateTime start,int oldDays,int newDays,double fraction) {
   fraction=Math.Clamp(fraction,0,.999999);
