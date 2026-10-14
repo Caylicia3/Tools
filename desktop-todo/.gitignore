@@ -1,0 +1,12 @@
+.cache/
+.tmp/
+.tools/
+artifacts/
+**/bin/
+**/obj/
+*.db*
+*.log
+*.backup.json
+data-location.txt
+.vs/
+

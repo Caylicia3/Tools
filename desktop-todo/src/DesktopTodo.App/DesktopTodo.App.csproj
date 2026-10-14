@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net10.0-windows10.0.19041.0</TargetFramework><SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion><UseWPF>true</UseWPF><UseWindowsForms>true</UseWindowsForms><Nullable>enable</Nullable><ImplicitUsings>disable</ImplicitUsings><ApplicationManifest>app.manifest</ApplicationManifest><ApplicationIcon>Assets\app.ico</ApplicationIcon><AssemblyName>DesktopTodo</AssemblyName><Version>0.1.1</Version><Product>日程管理</Product><Title>日程管理</Title><AssemblyTitle>日程管理</AssemblyTitle><Description>周月日程与任务时间轴</Description><RuntimeIdentifier>win-x64</RuntimeIdentifier><WindowsPackageType>None</WindowsPackageType><WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained><WindowsAppSdkBootstrapInitialize>false</WindowsAppSdkBootstrapInitialize><WindowsAppSdkDeploymentManagerInitialize>false</WindowsAppSdkDeploymentManagerInitialize></PropertyGroup>
+<ItemGroup><ProjectReference Include="../DesktopTodo.Core/DesktopTodo.Core.csproj"/><PackageReference Include="Microsoft.WindowsAppSDK.Foundation" Version="1.8.260803002"/><PackageReference Include="Microsoft.WindowsAppSDK.Runtime" Version="1.8.260921001"/></ItemGroup>
+<ItemGroup><None Remove="Assets\app.png;Assets\app.ico"/><Content Include="Assets\app.png" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/></ItemGroup></Project>
+
+
+
+
+
+
+
+
+

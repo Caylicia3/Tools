@@ -1,0 +1,12 @@
+Microsoft.Data.Sqlite/10.0.12
+Microsoft.Data.Sqlite.Core/10.0.12
+Microsoft.Windows.SDK.BuildTools/10.0.26100.4654
+Microsoft.Windows.SDK.BuildTools.MSIX/1.7.20250829.1
+Microsoft.WindowsAppSDK.Base/1.8.251216001
+Microsoft.WindowsAppSDK.Foundation/1.8.260803002
+Microsoft.WindowsAppSDK.InteractiveExperiences/1.8.260708001
+Microsoft.WindowsAppSDK.Runtime/1.8.260921001
+SQLitePCLRaw.bundle_e_sqlite3/2.1.12
+SQLitePCLRaw.core/2.1.12
+SQLitePCLRaw.lib.e_sqlite3/2.1.12
+SQLitePCLRaw.provider.e_sqlite3/2.1.12
