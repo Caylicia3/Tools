@@ -1,0 +1,33 @@
+name: 日程管理问题反馈
+description: 报告可复现的运行或安装问题
+title: '[DesktopTodo] '
+body:
+  - type: markdown
+    attributes:
+      value: 请先查看 desktop-todo/docs/INSTALLATION.md。不要上传私人日程数据库；日志与截图请先检查个人信息。
+  - type: input
+    id: environment
+    attributes:
+      label: 系统与版本
+      description: Windows 版本、系统类型、软件版本、标准版或兼容版
+      placeholder: Windows 11 x64，0.1.2 标准安装版
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 如何复现
+      description: 从打开程序或运行安装包开始，列出操作步骤。
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: 预期结果与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 补充信息
+      description: 可附错误文字、已检查过的日志或仅包含程序的截图。
