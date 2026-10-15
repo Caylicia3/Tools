@@ -7,5 +7,4 @@ global using System.Windows.Controls;
 global using System.Windows.Input;
 global using System.Windows.Media;
 global using DesktopTodo.Core;
-
 global using Validation = DesktopTodo.Core.Validation;
