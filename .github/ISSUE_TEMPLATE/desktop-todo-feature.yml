@@ -1,0 +1,18 @@
+name: 日程管理功能建议
+description: 描述使用场景与希望改善的操作
+title: '[DesktopTodo] '
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 使用场景
+      description: 目前在哪一步遇到不便？
+    validations:
+      required: true
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: 希望的行为
+      description: 描述操作前后的效果；有替代办法也可以一起说明。
+    validations:
+      required: true

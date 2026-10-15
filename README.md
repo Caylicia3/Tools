@@ -4,13 +4,17 @@ Caylicia3 的工具项目。
 
 ## 日程管理 · DesktopTodo
 
-适用于 Windows 10／11 64 位电脑的桌面周／月日程与任务时间轴工具。支持自定义主题、实时预览、提醒、撤销重做和本地备份。
+把每周安排和跨天任务放在同一个桌面面板中：上方查看周／月日程，下方沿时间轴查看任务截止时间和节点。
 
-**[下载标准安装包](https://github.com/Caylicia3/Tools/releases/download/desktop-todo-v0.1.2/DesktopTodo-0.1.2-win-x64-Setup.exe)** · [兼容安装包](https://github.com/Caylicia3/Tools/releases/download/desktop-todo-v0.1.2/DesktopTodo-0.1.2-win-x64-Compatibility-Setup.exe) · [全部下载与版本说明](https://github.com/Caylicia3/Tools/releases/tag/desktop-todo-v0.1.2)
+[![日程管理：周日程与任务时间轴](desktop-todo/docs/images/week-timeline.png)](desktop-todo/)
 
-- 当前版本：0.1.2 预览版
-- [使用说明与源码](desktop-todo/)
-- 本地保存数据，日常使用无需联网，无需开发环境，仅手动启动
-- 可自选程序目录和数据目录，升级沿用数据位置，卸载保留数据
+**[下载 0.1.2](https://github.com/Caylicia3/Tools/releases/tag/desktop-todo-v0.1.2)** · [功能与使用说明](desktop-todo/) · [设计说明](desktop-todo/docs/ARCHITECTURE.md) · [构建与测试](desktop-todo/docs/DEVELOPMENT.md)
 
-普通用户优先选择标准版 Setup.exe 安装包。另提供 Compatibility 兼容版和两种 ZIP 免安装包，区别与选择方式见版本说明。GitHub 自动生成的 Source code 是开发用源码；直接使用请选择安装包或免安装包。
+- Windows 10 22H2／Windows 11，64 位 Intel／AMD 电脑。
+- 周／月日程、任务节点、撤销重做、自定义主题和到期提醒。
+- 数据保存在本机，日常使用无需联网；手动启动，可随时完全退出。
+- 自选程序与数据目录，升级保留数据；提供安装包与免安装版。
+
+当前为 **0.1.2 预览版**。标准版与兼容版的选择方式见下载页。
+
+日程管理子项目采用 [MIT 许可](desktop-todo/LICENSE)。第三方组件遵循各自许可；其他项目的许可请查看对应目录。

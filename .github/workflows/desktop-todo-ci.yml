@@ -1,0 +1,59 @@
+name: DesktopTodo build and checks
+
+on:
+  push:
+    paths:
+      - 'desktop-todo/**'
+      - '.github/workflows/desktop-todo-ci.yml'
+      - '.editorconfig'
+      - '.gitattributes'
+  pull_request:
+    paths:
+      - 'desktop-todo/**'
+      - '.github/workflows/desktop-todo-ci.yml'
+      - '.editorconfig'
+      - '.gitattributes'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: desktop-todo-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-check:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: desktop-todo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up SDK from global.json
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          global-json-file: desktop-todo/global.json
+      - name: Build the Windows app
+        run: ./build.ps1 -Action build
+      - name: Run core checks
+        run: ./build.ps1 -Action test
+      - name: Verify formatting
+        run: ./build.ps1 -Action format-check
+      - name: Write test summary
+        if: always()
+        run: |
+          if (Test-Path -LiteralPath '.tmp/tests/results.txt') {
+            Get-Content -LiteralPath '.tmp/tests/results.txt' >> $env:GITHUB_STEP_SUMMARY
+          }
+      - name: Save core check summary
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: desktop-todo-core-checks
+          path: desktop-todo/.tmp/tests/results.txt
+          if-no-files-found: warn
+          retention-days: 14
