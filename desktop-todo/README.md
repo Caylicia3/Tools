@@ -71,6 +71,7 @@
 - [设计与取舍](docs/ARCHITECTURE.md)：重复日程、内容历史、提醒和坐标计算。
 - [开发说明](docs/DEVELOPMENT.md)：从干净目录构建、测试、运行演示和打包。
 - [测试与验证范围](TEST-REPORT.md)：自动检查、本机界面验证及未覆盖范围。
+- [项目讲解提纲](docs/PROJECT-WALKTHROUGH.md)：演示顺序、关键实现与技术讨论问题。
 - [安装 FAQ](docs/INSTALLATION.md)：包的选择、数据位置和安装故障处理。
 - [更新记录](CHANGELOG.md) · [参与和反馈](CONTRIBUTING.md)。
 

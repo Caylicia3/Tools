@@ -191,26 +191,17 @@ internal static class InteractionChecks
         week = Named<ScrollViewer>(app.Planner, "周日程内容");
         weekCanvas = (Canvas)week.Content;
         var card = Named<Border>(app.Planner, "日程：缩放定位检查");
-        NativeTestInput.PointAt(card, 16, 16);
-        NativeTestInput.Down();
-        await System.Threading.Tasks.Task.Delay(60);
-        NativeTestInput.PointAt(card, 26, 16);
-        await System.Threading.Tasks.Task.Delay(120);
+        var dragStart = card.PointToScreen(new Point(16, 16));
+        var dragThreshold = card.PointToScreen(new Point(26, 16));
         var destination = weekCanvas.PointToScreen(new Point(56 + dayWidth * 3.5, 18 * 52 + 16));
-        NativeTestInput.Move((int)destination.X, (int)destination.Y);
-        await System.Threading.Tasks.Task.Delay(160);
-        NativeTestInput.Up();
+        await NativeTestInput.Drag(dragStart, dragThreshold, destination);
         await System.Threading.Tasks.Task.Delay(160);
         Check(app.Store.Current.Events.Single(e => e.Title == "缩放定位检查").Start == CalendarLogic.WeekStart(app.Planner.SelectedDate).AddDays(3).AddHours(18.25), "Scaled event drag mapped incorrectly: " + app.Store.Current.Events.Single(e => e.Title == "缩放定位检查").Start.ToString("s"));
         card = Named<Border>(app.Planner, "日程：缩放定位检查");
         var thumb = Find<System.Windows.Controls.Primitives.Thumb>(card).Single();
-        NativeTestInput.PointAt(thumb, Math.Max(1, thumb.ActualWidth / 2), 3);
-        NativeTestInput.Down();
-        await System.Threading.Tasks.Task.Delay(60);
+        var resizeStart = thumb.PointToScreen(new Point(Math.Max(1, thumb.ActualWidth / 2), 3));
         var lower = thumb.PointToScreen(new Point(Math.Max(1, thumb.ActualWidth / 2), 3 + 26));
-        NativeTestInput.Move((int)lower.X, (int)lower.Y);
-        await System.Threading.Tasks.Task.Delay(100);
-        NativeTestInput.Up();
+        await NativeTestInput.Drag(resizeStart, resizeStart, lower);
         await System.Threading.Tasks.Task.Delay(160);
         Check(app.Store.Current.Events.Single(e => e.Title == "缩放定位检查").End.Hour == 19 && app.Store.Current.Events.Single(e => e.Title == "缩放定位检查").End.Minute == 45, "Scaled resize mapped incorrectly");
         var denseStart = CalendarLogic.WeekStart(app.Planner.SelectedDate).AddDays(3).AddHours(18);
@@ -441,6 +432,27 @@ internal static class NativeTestInput
         Move((int)point.X, (int)point.Y);
     }
 
+    // WPF drag-and-drop runs a native message loop. Deliver the entire gesture on
+    // a worker so releasing the mouse does not depend on a UI-thread continuation.
+    // Capture screen coordinates before the gesture; a drop can rebuild the view.
+    internal static System.Threading.Tasks.Task Drag(Point start, Point threshold, Point end) => System.Threading.Tasks.Task.Run(async () =>
+    {
+        Move((int)start.X, (int)start.Y);
+        await System.Threading.Tasks.Task.Delay(80);
+        Down();
+        try
+        {
+            await System.Threading.Tasks.Task.Delay(100);
+            Move((int)threshold.X, (int)threshold.Y);
+            await System.Threading.Tasks.Task.Delay(150);
+            Move((int)end.X, (int)end.Y);
+            await System.Threading.Tasks.Task.Delay(200);
+        }
+        finally
+        {
+            Up();
+        }
+    });
     internal static void Down() => mouse_event(2, 0, 0, 0, UIntPtr.Zero);
     internal static void Up() => mouse_event(4, 0, 0, 0, UIntPtr.Zero);
     internal static void Key(byte key, bool up = false) => keybd_event(key, 0, up ? 2u : 0u, UIntPtr.Zero);
