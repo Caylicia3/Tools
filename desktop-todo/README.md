@@ -2,9 +2,9 @@
 
 面向 **Windows 10／11 64 位电脑**的桌面日程工具，把周／月计划和任务截止时间放在同一个面板中。
 
-[下载已发布版本与查看说明](https://github.com/Caylicia3/Tools/releases)
+[下载 0.1.2 与查看说明](https://github.com/Caylicia3/Tools/releases/tag/desktop-todo-v0.1.2)
 
-本分支版本：**0.1.2 预览版**，实际可下载版本以 Releases 页面为准。无需账号，日程数据保存在本机，运行组件随包提供。
+版本：**0.1.2 预览版**。无需账号，日程数据保存在本机，运行组件随包提供。
 
 ## 主要功能
 
