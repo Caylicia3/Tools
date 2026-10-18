@@ -33,7 +33,7 @@ internal sealed class FormWindow : Window
         SetResourceReference(ForegroundProperty, "PanelForeground");
         ShowInTaskbar = false;
         ResizeMode = ResizeMode.NoResize;
-        if (owner is not PlannerWindow pw || !Native.IsAttached(pw))
+        if (!Native.IsAttached(owner))
         {
             Owner = owner;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;

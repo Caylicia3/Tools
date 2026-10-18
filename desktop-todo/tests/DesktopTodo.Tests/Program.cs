@@ -694,6 +694,148 @@ Test("Old and new settings default to tray without system registration opt in", 
     var p = System.Text.Json.JsonSerializer.Deserialize<Preferences>("{}")!;
     Assert(!p.UseSystemNotifications && p.Notifications);
 });
+
+Test("Sidebar rich text roundtrip and backup preserve mixed styles", () =>
+{
+    string dir = Path.Combine(root, Guid.NewGuid().ToString("N"));
+    var text = new RichText { Runs = [new() { Text = "目标🙂", Size = 18, Color = "#7F6890" }, new() { Text = "\n第二行", Size = 11, Color = "#31446C" }] };
+    using (var st = new Store(dir))
+    {
+        st.Edit("add", s => { s.Sidebar.Content.Items.Add(new() { Title = text, Notes = RichText.From("备注") }); s.Sidebar.Content.Note = text; });
+        st.Backup(Path.Combine(dir, "new.json"));
+        st.Edit("clear", s => s.Sidebar.Content.Items.Clear());
+        st.Restore(Path.Combine(dir, "new.json"));
+        Assert(st.Current.Sidebar.Content.Items.Count == 1 && !st.CanUndo);
+    }
+    using var reopened = new Store(dir);
+    Assert(reopened.Current.Sidebar.Content.Note.Runs[0].Size == 18);
+    Assert(reopened.Current.Sidebar.Content.Note.Runs[1].Color == "#31446C");
+});
+Test("Legacy writer cannot erase sidebar table", () =>
+{
+    string dir = Path.Combine(root, Guid.NewGuid().ToString("N"));
+    using (var st = new Store(dir))
+        st.Edit("note", s => s.Sidebar.Content.Note = RichText.From("保留我"));
+    using (var db = new Microsoft.Data.Sqlite.SqliteConnection("Data Source=" + Path.Combine(dir, "desktop-todo.db")))
+    {
+        db.Open();
+        using var cmd = db.CreateCommand();
+        cmd.CommandText = "UPDATE app_state SET json='{\"Version\":1,\"Events\":[],\"Tasks\":[],\"Settings\":{}}' WHERE id=1";
+        cmd.ExecuteNonQuery();
+    }
+    using var next = new Store(dir);
+    Assert(next.Current.Sidebar.Content.Note.PlainText == "保留我");
+});
+Test("Legacy backup restores calendar without discarding sidebar", () =>
+{
+    using var st = new Store(Path.Combine(root, Guid.NewGuid().ToString("N")));
+    st.Edit("note", s => s.Sidebar.Content.Note = RichText.From("最新笔记"));
+    string file = Path.Combine(st.DirectoryPath, "legacy.json");
+    File.WriteAllText(file, "{\"Version\":1,\"Events\":[],\"Tasks\":[],\"Settings\":{}}");
+    st.Restore(file);
+    Assert(st.Current.Sidebar.Content.Note.PlainText == "最新笔记" && !st.CanUndo);
+});
+Test("Sidebar history preserves appearance and reminder state", () =>
+{
+    using var st = new Store(Path.Combine(root, Guid.NewGuid().ToString("N")));
+    st.Edit("note", s => s.Sidebar.Content.Note = RichText.From("笔记"));
+    st.Update(s => { s.Sidebar.Settings.NoteBackground = "#B7ABD4"; s.DeliveredReminders.Add("already"); });
+    st.Undo();
+    Assert(st.Current.Sidebar.Content.Note.PlainText == "" && st.Current.Sidebar.Settings.NoteBackground == "#B7ABD4" && st.Current.DeliveredReminders.Contains("already"));
+    st.Redo();
+    Assert(st.Current.Sidebar.Content.Note.PlainText == "笔记");
+});
+Test("Typing batches coalesce and new content breaks the batch", () =>
+{
+    using var st = new Store(Path.Combine(root, Guid.NewGuid().ToString("N")));
+    st.Edit("type", s => s.Sidebar.Content.Note = RichText.From("a"), "session");
+    st.Edit("type", s => s.Sidebar.Content.Note = RichText.From("ab"), "session");
+    Assert(st.UndoCount == 1);
+    st.Edit("task", s => s.Tasks.Add(new() { Title = "task" }));
+    st.Edit("type", s => s.Sidebar.Content.Note = RichText.From("abc"), "session");
+    Assert(st.UndoCount == 3);
+    st.Undo();
+    Assert(st.Current.Sidebar.Content.Note.PlainText == "ab");
+    st.Undo();
+    st.Undo();
+    Assert(st.Current.Sidebar.Content.Note.PlainText == "");
+});
+Test("Typing back to original leaves no history entry", () =>
+{
+    using var st = new Store(Path.Combine(root, Guid.NewGuid().ToString("N")));
+    st.Edit("type", s => s.Sidebar.Content.Note = RichText.From("a"), "session");
+    st.Edit("type", s => s.Sidebar.Content.Note = new(), "session");
+    Assert(!st.CanUndo);
+});
+Test("Pending editor flush precedes external undo and is reentrancy safe", () =>
+{
+    using var st = new Store(Path.Combine(root, Guid.NewGuid().ToString("N")));
+    bool dirty = true;
+    st.BeforeContentChange += () => { if (!dirty) return; dirty = false; st.Edit("pending", s => s.Sidebar.Content.Note = RichText.From("pending")); };
+    st.Undo();
+    Assert(st.Current.Sidebar.Content.Note.PlainText == "" && st.CanRedo);
+});
+Test("Sidebar transaction failure rolls back both tables and history", () =>
+{
+    string dir = Path.Combine(root, Guid.NewGuid().ToString("N"));
+    using var st = new Store(dir);
+    st.Edit("before", s => s.Sidebar.Content.Note = RichText.From("before"));
+    using var db = new Microsoft.Data.Sqlite.SqliteConnection("Data Source=" + Path.Combine(dir, "desktop-todo.db"));
+    db.Open();
+    using var cmd = db.CreateCommand();
+    cmd.CommandText = "CREATE TRIGGER refuse_sidebar BEFORE UPDATE ON sidebar_state BEGIN SELECT RAISE(ABORT, 'test failure'); END;";
+    cmd.ExecuteNonQuery();
+    bool failed = false;
+    try
+    {
+        st.Edit("both", s => { s.Events.Add(new() { Title = "x", Start = D(2026, 1, 1), End = D(2026, 1, 2) }); s.Sidebar.Content.Note = RichText.From("after"); });
+    }
+    catch (Microsoft.Data.Sqlite.SqliteException) { failed = true; }
+    Assert(failed && st.Current.Events.Count == 0 && st.UndoCount == 1 && st.Current.Sidebar.Content.Note.PlainText == "before");
+    using var reopened = new Store(dir);
+    Assert(reopened.Current.Events.Count == 0 && reopened.Current.Sidebar.Content.Note.PlainText == "before");
+});
+Test("Invalid sidebar rich text and settings are rejected", () =>
+{
+    var s = new AppState();
+    s.Sidebar.Content.Items.Add(new()
+    {
+        Title = RichText.From("  ")
+    });
+    Reject(() => Validation.State(s));
+    s.Sidebar.Content.Items.Clear();
+    s.Sidebar.Content.Note = RichText.From("x");
+    s.Sidebar.Content.Note.Runs[0].Size = double.NaN;
+    Reject(() => Validation.State(s));
+    s.Sidebar.Content.Note.Runs[0].Size = 73;
+    Reject(() => Validation.State(s));
+    s.Sidebar.Content.Note.Runs[0].Size = 8;
+    s.Sidebar.Content.Note.Runs[0].Color = "#ab";
+    Reject(() => Validation.State(s));
+    s.Sidebar.Content.Note.Runs[0].Color = "#000000";
+    s.Sidebar.Settings.NoteZoom = 2.1;
+    Reject(() => Validation.State(s));
+    s.Sidebar.Settings.NoteZoom = 2;
+    Validation.State(s);
+});
+Test("Checklist complete reorder and delete undo preserve formatting", () =>
+{
+    using var st = new Store(Path.Combine(root, Guid.NewGuid().ToString("N")));
+    st.Edit("add", s => { s.Sidebar.Content.Items.Add(new() { Title = RichText.From("a") }); s.Sidebar.Content.Items.Add(new() { Title = RichText.From("b") }); });
+    st.Edit("reorder", s => { s.Sidebar.Content.Items.Reverse(); s.Sidebar.Content.Items[0].Completed = true; s.Sidebar.Content.Items[0].Title.Runs[0].Size = 72; });
+    st.Edit("delete", s => s.Sidebar.Content.Items.Clear());
+    st.Undo();
+    Assert(st.Current.Sidebar.Content.Items[0].Completed && st.Current.Sidebar.Content.Items[0].Title.Runs[0].Size == 72);
+    st.Undo();
+    Assert(st.Current.Sidebar.Content.Items[0].Title.PlainText == "a");
+});
+Test("Rich text normalization preserves unicode and newlines", () =>
+{
+    var text = new RichText { Runs = [new() { Text = "中" }, new() { Text = "文🙂\ne\u0301" }, new() { Text = "", Color = "#123456" }] };
+    text.Normalize();
+    Assert(text.Runs.Count == 1 && text.PlainText == "中文🙂\ne\u0301");
+});
+
 Console.WriteLine($"RESULT {passed} passed; {failed} failed");
 File.WriteAllText(Path.Combine(root, "results.txt"), $"{passed} passed; {failed} failed");
 Environment.ExitCode = failed == 0 ? 0 : 1;

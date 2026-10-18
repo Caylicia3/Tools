@@ -112,6 +112,14 @@ internal static class Native
         SetWindowPos(hwnd, IntPtr.Zero, r.Left + (int)dx, r.Top + (int)dy, 0, 0, 0x0001 | 0x0004 | 0x0010);
     }
 
+    [DllImport("user32.dll")]
+    static extern bool GetCursorPos(out POINT point);
+    public static Point CursorPosition()
+    {
+        GetCursorPos(out var point);
+        return new Point(point.X, point.Y);
+    }
+
     public static (int X, int Y, int Width, int Height) Bounds(Window window)
     {
         GetWindowRect(new WindowInteropHelper(window).Handle, out var r);

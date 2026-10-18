@@ -7,7 +7,7 @@ internal record CalendarDrag(Occurrence Occurrence);
 internal partial class PlannerWindow
 {
     const double HourHeight = 52;
-    double CalendarWidth => Math.Max(480, ActualWidth - 58);
+    double CalendarWidth => Math.Max(480, frame.ActualWidth - 58);
 
     FrameworkElement BuildWeek()
     {
@@ -414,11 +414,21 @@ internal partial class PlannerWindow
         {
             scroll.ScrollToHorizontalOffset(restoreX);
             scroll.ScrollToVerticalOffset(restoreY);
-            ready = true;
+            Dispatcher.BeginInvoke(() =>
+            {
+                if (!scroll.IsLoaded || !IsAncestorOf(scroll))
+                    return;
+                scroll.UpdateLayout();
+                scroll.ScrollToHorizontalOffset(restoreX);
+                scroll.ScrollToVerticalOffset(restoreY);
+                scroll.UpdateLayout();
+                ready = true;
+                horizontal?.Invoke(scroll.HorizontalOffset);
+            }, System.Windows.Threading.DispatcherPriority.Loaded);
         };
         scroll.ScrollChanged += (_, _) =>
         {
-            if (!ready)
+            if (!ready || !scroll.IsLoaded || !IsAncestorOf(scroll))
                 return;
             if (month)
             {

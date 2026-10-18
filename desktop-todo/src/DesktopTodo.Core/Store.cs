@@ -7,8 +7,8 @@ public sealed class Store : IDisposable
 {
     readonly SqliteConnection db;
     // Content history deliberately excludes settings and delivered-reminder keys.
-    sealed record Content(List<CalendarEvent> Events, List<TodoTask> Tasks);
-    sealed record Entry(string Label, string Before, string After);
+    sealed record Content(List<CalendarEvent> Events, List<TodoTask> Tasks, SidebarContent Sidebar);
+    sealed record Entry(string Label, string Before, string After, string? Group);
     readonly List<Entry> undo = [], redo = [];
     public string DirectoryPath
     {
@@ -20,6 +20,19 @@ public sealed class Store : IDisposable
     }
 
     public event Action? Changed;
+    public event Action? BeforeContentChange;
+    bool preparing;
+    void Prepare()
+    {
+        if (preparing)
+            return;
+        preparing = true;
+        try
+        {
+            BeforeContentChange?.Invoke();
+        }
+        finally { preparing = false; }
+    }
     public bool CanUndo => undo.Count > 0;
     public bool CanRedo => redo.Count > 0;
     public int UndoCount => undo.Count;
@@ -27,7 +40,7 @@ public sealed class Store : IDisposable
     public string UndoLabel => CanUndo ? undo[^1].Label : "";
     public string RedoLabel => CanRedo ? redo[^1].Label : "";
 
-    static string Capture(AppState state) => JsonSerializer.Serialize(new Content(state.Events, state.Tasks), Copies.Options);
+    static string Capture(AppState state) => JsonSerializer.Serialize(new Content(state.Events, state.Tasks, state.Sidebar.Content), Copies.Options);
     public Store(string directory)
     {
         DirectoryPath = Path.GetFullPath(directory);
@@ -36,7 +49,7 @@ public sealed class Store : IDisposable
         db.Open();
         using (var cmd = db.CreateCommand())
         {
-            cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS app_state (id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL, json TEXT NOT NULL);";
+            cmd.CommandText = "PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS app_state (id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL, json TEXT NOT NULL); CREATE TABLE IF NOT EXISTS sidebar_state (id INTEGER PRIMARY KEY CHECK(id=1), version INTEGER NOT NULL, json TEXT NOT NULL);";
             cmd.ExecuteNonQuery();
         }
 
@@ -45,6 +58,9 @@ public sealed class Store : IDisposable
             cmd.CommandText = "SELECT json FROM app_state WHERE id=1";
             var json = cmd.ExecuteScalar() as string;
             Current = json == null ? new AppState() : JsonSerializer.Deserialize<AppState>(json, Copies.Options) ?? throw new InvalidDataException("数据库内容为空。");
+            cmd.CommandText = "SELECT json FROM sidebar_state WHERE id=1";
+            if (cmd.ExecuteScalar() is string sidebarJson)
+                Current.Sidebar = JsonSerializer.Deserialize<SidebarState>(sidebarJson, Copies.Options) ?? throw new InvalidDataException("侧栏数据为空。");
             Validation.State(Current);
         }
 
@@ -59,7 +75,15 @@ public sealed class Store : IDisposable
         cmd.Transaction = tx;
         cmd.CommandText = "INSERT INTO app_state(id,version,json) VALUES(1,$version,$json) ON CONFLICT(id) DO UPDATE SET version=excluded.version,json=excluded.json";
         cmd.Parameters.AddWithValue("$version", state.Version);
-        cmd.Parameters.AddWithValue("$json", JsonSerializer.Serialize(state, Copies.Options));
+        // Keep the legacy row readable and writable by older releases. Sidebar lives in its own table.
+        var legacy = System.Text.Json.Nodes.JsonNode.Parse(JsonSerializer.Serialize(state, Copies.Options))!.AsObject();
+        legacy.Remove(nameof(AppState.Sidebar));
+        cmd.Parameters.AddWithValue("$json", legacy.ToJsonString(Copies.Options));
+        cmd.ExecuteNonQuery();
+        cmd.Parameters.Clear();
+        cmd.CommandText = "INSERT INTO sidebar_state(id,version,json) VALUES(1,$version,$json) ON CONFLICT(id) DO UPDATE SET version=excluded.version,json=excluded.json";
+        cmd.Parameters.AddWithValue("$version", state.Sidebar.Version);
+        cmd.Parameters.AddWithValue("$json", JsonSerializer.Serialize(state.Sidebar, Copies.Options));
         cmd.ExecuteNonQuery();
         tx.Commit();
         Current = state;
@@ -86,8 +110,9 @@ public sealed class Store : IDisposable
             Changed?.Invoke();
     }
 
-    public void Edit(string label, Action<AppState> edit)
+    public void Edit(string label, Action<AppState> edit, string? coalesceKey = null)
     {
+        Prepare();
         string before = Capture(Current);
         var copy = Copies.Clone(Current);
         edit(copy);
@@ -96,7 +121,19 @@ public sealed class Store : IDisposable
         if (before == after)
             return;
         Commit(copy);
-        undo.Add(new(label, before, after));
+        if (coalesceKey != null && redo.Count == 0 && undo.Count > 0 && undo[^1].Group == coalesceKey)
+        {
+            var previous = undo[^1];
+            if (previous.Before == after)
+                undo.RemoveAt(undo.Count - 1);
+            else
+                undo[^1] = previous with
+                {
+                    After = after
+                };
+        }
+        else
+            undo.Add(new(label, before, after, coalesceKey));
         if (undo.Count > 100)
             undo.RemoveAt(0);
         redo.Clear();
@@ -107,6 +144,7 @@ public sealed class Store : IDisposable
     public void Redo() => Travel(redo, undo, true);
     void Travel(List<Entry> from, List<Entry> to, bool forward)
     {
+        Prepare();
         if (from.Count == 0)
             return;
         var entry = from[^1];
@@ -114,6 +152,7 @@ public sealed class Store : IDisposable
         var copy = Copies.Clone(Current);
         copy.Events = content.Events;
         copy.Tasks = content.Tasks;
+        copy.Sidebar.Content = content.Sidebar;
         // Keep both history stacks unchanged if persistence fails.
         Commit(copy);
         from.RemoveAt(from.Count - 1);
@@ -123,6 +162,7 @@ public sealed class Store : IDisposable
 
     public void Backup(string path)
     {
+        Prepare();
         var full = Path.GetFullPath(path);
         Directory.CreateDirectory(Path.GetDirectoryName(full)!);
         var temp = full + ".writing";
@@ -132,7 +172,12 @@ public sealed class Store : IDisposable
 
     public void Restore(string path)
     {
-        var restored = JsonSerializer.Deserialize<AppState>(File.ReadAllText(path), Copies.Options) ?? throw new InvalidDataException("备份为空。");
+        Prepare();
+        string json = File.ReadAllText(path);
+        var restored = JsonSerializer.Deserialize<AppState>(json, Copies.Options) ?? throw new InvalidDataException("备份为空。");
+        using (var document = JsonDocument.Parse(json))
+            if (!document.RootElement.TryGetProperty(nameof(AppState.Sidebar), out _))
+                restored.Sidebar = Copies.Clone(Current.Sidebar);
         Validation.State(restored);
         Backup(Path.Combine(DirectoryPath, "backups", "before-restore-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".backup.json"));
         restored.LastReminderCheck = DateTime.Now;

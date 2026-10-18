@@ -77,7 +77,7 @@ try {
             dotnet publish @restoreArgs $cetArg src/DesktopTodo.App/DesktopTodo.App.csproj -c Release --self-contained true -r win-x64 -p:PublishSingleFile=false -o $publishDirectory --disable-build-servers
             Assert-DotnetSuccess
 
-            foreach ($file in @('README.md', 'USAGE.txt', 'TEST-REPORT.md', 'ACCEPTANCE-0.1.2.md', 'LICENSE', 'CHANGELOG.md', 'CONTRIBUTING.md')) {
+            foreach ($file in @('README.md', 'USAGE.txt', 'TEST-REPORT.md', 'ACCEPTANCE-0.1.2.md', 'ACCEPTANCE-0.1.3.md', 'ACCEPTANCE-0.1.3.2.md', 'LICENSE', 'CHANGELOG.md', 'CONTRIBUTING.md')) {
                 Copy-Item -LiteralPath $file -Destination (Join-Path $publishDirectory $file) -Force
             }
             foreach ($directory in @('docs', 'THIRD-PARTY-NOTICES')) {

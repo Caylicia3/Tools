@@ -55,8 +55,14 @@ public partial class App : Application
     {
         Planner?.Render();
         TaskWindow?.Render();
+        Sidebar?.View.RefreshAppearance();
+        Sidebar?.RefreshAppearance();
     }
 
+    internal SidebarController? Sidebar
+    {
+        get; private set;
+    }
     internal PlannerWindow Planner { get; private set; } = null!;
     internal PlannerWindow? TaskWindow
     {
@@ -174,6 +180,7 @@ public partial class App : Application
             Planner.Show();
             if (Store.Current.Settings.Detached)
                 SetDetached(true, false);
+            Sidebar = new SidebarController(this);
             ConfigureNotifications();
             clock = new DispatcherTimer
             {
@@ -225,6 +232,7 @@ public partial class App : Application
                 Native.Activate(Planner);
             }
         }));
+        menu.Items.Add("显示清单与笔记", null, (_, _) => Dispatcher.Invoke(() => Sidebar?.Show()));
         menu.Items.Add("置顶 / 回到桌面", null, (_, _) => Dispatcher.Invoke(ToggleTopmost));
         menu.Items.Add("设置与备份", null, (_, _) => Dispatcher.Invoke(() => Dialogs.Settings(Planner)));
         menu.Items.Add("退出程序", null, (_, _) => Dispatcher.Invoke(ExitApp));
@@ -248,6 +256,7 @@ public partial class App : Application
     {
         Planner?.ApplyWindowMode();
         TaskWindow?.ApplyWindowMode();
+        Sidebar?.ApplyWindowMode();
     }
 
     internal void SetDetached(bool detached, bool save = true)
@@ -265,6 +274,7 @@ public partial class App : Application
         if (!detached && TaskWindow != null)
         {
             var old = TaskWindow;
+            Sidebar?.BeforeMerge(old);
             Planner.CopyTimelineFrom(old);
             TaskWindow = null;
             old.AllowClose = true;
@@ -406,6 +416,17 @@ public partial class App : Application
     {
         if (Exiting)
             return;
+        try
+        {
+            Sidebar?.View.Flush(true);
+            Sidebar?.Floating?.SaveBounds();
+        }
+        catch (Exception ex)
+        {
+            Log(ex);
+            MessageBox.Show("侧栏内容尚未保存，请处理后再退出。\n" + ex.Message, "尚未退出", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
         Exiting = true;
         clock?.Stop();
         try
@@ -438,6 +459,7 @@ public partial class App : Application
             tray.Dispose();
         }
 
+        Sidebar?.Dispose();
         Store?.Dispose();
         singleton?.Dispose();
         base.OnExit(e);

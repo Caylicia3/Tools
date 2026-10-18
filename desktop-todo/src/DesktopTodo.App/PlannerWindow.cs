@@ -66,7 +66,7 @@ internal partial class PlannerWindow : Window
         frame.BorderThickness = new Thickness(1);
         frame.Padding = new Thickness(18, 12, 18, 12);
         frame.Child = content;
-        Content = frame;
+        InitializeSidebarHost();
         Store.Changed += OnChanged;
         SourceInitialized += (_, _) => Native.ConstrainMaximize(this);
         StateChanged += (_, _) =>
@@ -85,6 +85,8 @@ internal partial class PlannerWindow : Window
         resizeDebounce.Tick += (_, _) =>
         {
             resizeDebounce.Stop();
+            if (App.Instance.Sidebar is { IsHandleDragging: true } sidebar && sidebar.Host == this)
+                return;
             Render();
             SaveBounds();
         };
@@ -185,19 +187,20 @@ internal partial class PlannerWindow : Window
             Store.Update(s =>
             {
                 var p = s.Settings;
+                var bounds = App.Instance.Sidebar?.SavedBounds(this) ?? new Rect(Left, Top, ActualWidth, ActualHeight);
                 if (TasksOnly)
                 {
-                    p.TaskLeft = Left;
-                    p.TaskTop = Top;
-                    p.TaskWidth = ActualWidth;
-                    p.TaskHeight = ActualHeight;
+                    p.TaskLeft = bounds.Left;
+                    p.TaskTop = bounds.Top;
+                    p.TaskWidth = bounds.Width;
+                    p.TaskHeight = bounds.Height;
                 }
                 else
                 {
-                    p.Left = Left;
-                    p.Top = Top;
-                    p.Width = ActualWidth;
-                    p.Height = ActualHeight;
+                    p.Left = bounds.Left;
+                    p.Top = bounds.Top;
+                    p.Width = bounds.Width;
+                    p.Height = bounds.Height;
                 }
             }, false);
         }
@@ -311,12 +314,13 @@ internal partial class PlannerWindow : Window
 
     internal void Render()
     {
-        if (!loaded || rendering)
+        if (!loaded || rendering || (App.Instance.Sidebar is { IsHandleDragging: true } sidebar && sidebar.Host == this))
             return;
         rendering = true;
         try
         {
             var p = App.Instance.Appearance;
+            RefreshSidebarChrome();
             frame.Background = Brush(Palette.Background, p.Opacity);
             frame.BorderBrush = Brush(Palette.Ink, .20);
             content.Children.Clear();
@@ -334,9 +338,10 @@ internal partial class PlannerWindow : Window
                 Margin = new Thickness(0, 0, 0, 12),
                 LastChildFill = true
             };
-            var actions = new StackPanel
+            var actions = new WrapPanel
             {
-                Orientation = Orientation.Horizontal
+                Orientation = Orientation.Horizontal,
+                MaxWidth = Math.Max(230, frame.ActualWidth - 150)
             };
             DockPanel.SetDock(actions, Dock.Right);
             var undo = Button("↶", Store.Undo);
@@ -353,6 +358,7 @@ internal partial class PlannerWindow : Window
             actions.Children.Add(redo);
             actions.Children.Add(Button(p.Topmost ? "取消置顶" : "置顶", App.Instance.ToggleTopmost));
             actions.Children.Add(Button(p.Detached ? "合并" : "拆分", () => App.Instance.SetDetached(!Store.Current.Settings.Detached)));
+            actions.Children.Add(Button("清单", () => App.Instance.Sidebar?.Show()));
             actions.Children.Add(Button("设置", () => Dialogs.Settings(this)));
             var minimize = Button("—", () => WindowState = WindowState.Minimized);
             minimize.ToolTip = "最小化到任务栏";
