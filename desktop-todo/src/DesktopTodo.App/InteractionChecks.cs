@@ -76,8 +76,8 @@ internal static class InteractionChecks
             sliders[2].Value = 36;
             Check(app.Appearance.Theme == "林间绿" && app.Appearance.Opacity == .42 && app.Appearance.TimelineBarHeight == 22 && app.Appearance.TimelineRowHeight == 36, "Live appearance did not update");
             Check(app.Store.Current.Settings.Opacity != .42, "Preview incorrectly persisted");
-            Check(((SolidColorBrush)((Border)app.Planner.Content).Background).Opacity == .42, "Main preview missing");
-            Check(((SolidColorBrush)((Border)app.TaskWindow!.Content).Background).Opacity == .42, "Detached preview missing");
+            Check(((SolidColorBrush)app.Planner.MainFrame.Background).Opacity == .42, "Main preview missing");
+            Check(((SolidColorBrush)app.TaskWindow!.MainFrame.Background).Opacity == .42, "Detached preview missing");
             Check(((SolidColorBrush)form.Background).Color == (Color)ColorConverter.ConvertFromString("#F9F7EE"), "Settings did not follow theme");
             capture(app.Planner, "12-live-preview-thick-compact");
             capture(form, "13-green-settings");
@@ -398,6 +398,10 @@ internal static class InteractionChecks
 internal static class NativeTestInput
 {
     [DllImport("user32.dll")]
+    internal static extern IntPtr WindowFromPoint(System.Drawing.Point point);
+    [DllImport("user32.dll")]
+    internal static extern IntPtr GetForegroundWindow();
+    [DllImport("user32.dll")]
     static extern bool SetCursorPos(int x, int y);
     [DllImport("user32.dll")]
     static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
@@ -478,6 +482,12 @@ internal static class NativeTestInput
         Key(0x44);
         Key(0x44, true);
         Key(0x5B, true);
+    }
+
+    internal static bool DismissSpacePrompt()
+    {
+        var dialog = FindWindow("#32770", "请为清单留出空间");
+        return dialog != IntPtr.Zero && PostMessage(GetDlgItem(dialog, 1), 0xF5, IntPtr.Zero, IntPtr.Zero);
     }
 
     internal static bool AnswerNodeMove(bool yes)

@@ -119,6 +119,7 @@ public static class Validation
     public static void Color(string value) => Check(value == "" || System.Text.RegularExpressions.Regex.IsMatch(value, "^#[0-9a-fA-F]{6}$"), "颜色请填写 # 后接 6 位数字或 A～F 字母，例如 #B7ABD4，也可点击选色。");
     public static void State(AppState s)
     {
+        SidebarValidation.State(s.Sidebar);
         Check(s.Version == 1, "备份版本不受支持，请使用对应版本的软件。");
         Check(s.Events != null && s.Tasks != null && s.Settings != null && s.DeliveredReminders != null, "数据文件缺少必要内容。");
         var ids = new HashSet<string>();

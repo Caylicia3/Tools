@@ -29,12 +29,18 @@ internal static class ExitChecks
             Dialogs.Event(app.Planner, null, DateTime.Today.AddHours(9));
             if (!editorClosed || app.Exiting || app.Windows.OfType<PlannerWindow>().Count() != 2)
                 throw new Exception("Editor close exited app");
+            app.Sidebar!.Detach();
+            app.Sidebar.View.NoteEditor.AppendText("退出前保存检查 " + mode);
             Native.Activate(target);
             await System.Threading.Tasks.Task.Delay(160);
             NativeTestInput.PointAt(target, 25, 25);
             NativeTestInput.Down();
             NativeTestInput.Up();
             await System.Threading.Tasks.Task.Delay(80);
+            Native.Activate(target);
+            await System.Threading.Tasks.Task.Delay(250);
+            if (!target.IsActive)
+                throw new Exception("Exit gesture target is not active");
             File.WriteAllText(Path.Combine(app.DataDir, "exit-requested.txt"), mode + "; panels=2; editor-close=passed");
             if (mode.EndsWith("-x"))
                 InteractionChecks.Find<Button>(target).Single(b => System.Windows.Automation.AutomationProperties.GetName(b) == "退出整个程序").RaiseEvent(new RoutedEventArgs(Button.ClickEvent));

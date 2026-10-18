@@ -62,6 +62,26 @@ internal static class SmokeRunner
 
         try
         {
+            if (Environment.GetCommandLineArgs().Contains("--sidebar-motion"))
+            {
+                await SidebarMotionChecks.Run(app, results);
+                File.WriteAllText(Path.Combine(app.DataDir, "smoke-result.json"), JsonSerializer.Serialize(new
+                {
+                    passed = true,
+                    checks = results
+                }));
+                return;
+            }
+            if (Environment.GetCommandLineArgs().Contains("--sidebar-only"))
+            {
+                await SidebarChecks.Run(app, CaptureNow, results);
+                File.WriteAllText(Path.Combine(app.DataDir, "smoke-result.json"), JsonSerializer.Serialize(new
+                {
+                    passed = true,
+                    checks = results
+                }));
+                return;
+            }
             await Capture(app.Planner, "01-week");
             app.Planner.MonthView = true;
             app.Planner.Render();
@@ -128,8 +148,13 @@ internal static class SmokeRunner
             results.Add("desktop-attachment");
             // Verify actual shell entries, rather than inferring from window style.
             var entries = InteractionChecks.TaskbarEntries();
+            for (int attempt = 0; entries.Length == 0 && attempt < 8; attempt++)
+            {
+                await System.Threading.Tasks.Task.Delay(350);
+                entries = InteractionChecks.TaskbarEntries();
+            }
             if (entries.Length == 0)
-                throw new Exception("Actual Windows taskbar entry missing");
+                throw new Exception("Actual Windows taskbar entry missing: " + Native.Diagnostic(app.Planner));
             results.Add("taskbar-buttons: " + string.Join(" | ", entries));
             var screenBounds = System.Windows.Forms.Screen.PrimaryScreen!.Bounds;
             using (var taskbarCapture = new System.Drawing.Bitmap(screenBounds.Width, 100))
@@ -189,6 +214,8 @@ internal static class SmokeRunner
             results.Add("topmost-to-desktop");
             app.Store.Update(s => s.Settings.DesktopMode = false);
             app.ApplyWindows();
+            if (Environment.GetCommandLineArgs().Contains("--sidebar-checks"))
+                await SidebarChecks.Run(app, CaptureNow, results);
             app.Store.Backup(Path.Combine(app.DataDir, "smoke.backup.json"));
             app.Store.Restore(Path.Combine(app.DataDir, "smoke.backup.json"));
             results.Add("backup-restore");

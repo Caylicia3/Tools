@@ -117,6 +117,7 @@ public sealed class Preferences
 
 public sealed class AppState
 {
+    public SidebarState Sidebar { get; set; } = new();
     public int Version { get; set; } = 1;
     public List<CalendarEvent> Events { get; set; } = [];
     public List<TodoTask> Tasks { get; set; } = [];

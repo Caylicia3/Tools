@@ -2,13 +2,13 @@
 #define Payload "..\artifacts\DesktopTodo"
 #endif
 #ifndef OutputName
-#define OutputName "DesktopTodo-0.1.2-win-x64-Setup"
+#define OutputName "DesktopTodo-0.1.3.2-win-x64-Setup"
 #endif
 
 [Setup]
 AppId={{36E96763-9573-4B93-B494-058BF5DDF380}
 AppName=日程管理
-AppVersion=0.1.2
+AppVersion=0.1.3.2
 AppPublisher=DesktopTodo
 DefaultDirName={code:DefaultInstallDir}
 DefaultGroupName=日程管理
@@ -80,7 +80,7 @@ begin
  end else begin
   DataPage.Edits[0].Enabled := True;
   DataPage.Buttons[0].Enabled := True;
-  DataPage.Description := '日程、任务和备份保存在此处。请选择程序目录之外的位置。';
+  DataPage.Description := '日程、任务、待办笔记和备份保存在此处。请选择程序目录之外的位置。';
   Suggested := AddBackslash(ExtractFileDir(RemoveBackslashUnlessRoot(WizardDirValue))) + 'DesktopTodoData';
   if RequestedData <> '' then Suggested := RequestedData;
   if (DataPage.Values[0] = '') or (DataPage.Values[0] = LastSuggestion) then DataPage.Values[0] := Suggested;
@@ -92,7 +92,7 @@ procedure InitializeWizard;
 begin
  RequestedData := ExpandConstant('{param:DATADIR|}');
  DataPage := CreateInputDirPage(wpSelectDir, '选择数据保存位置',
-  '日程、任务和备份会保存在这里。',
+  '日程、任务、待办笔记和备份会保存在这里。',
   '新安装默认建议保存在程序目录旁边，可更改。升级沿用已有数据位置。程序仅手动启动；卸载保留数据。',
   False, '');
  DataPage.Add('数据文件夹：');

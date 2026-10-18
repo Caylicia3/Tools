@@ -58,7 +58,7 @@ dotnet format whitespace tests/DesktopTodo.Tests/DesktopTodo.Tests.csproj --no-r
 
 ## 界面实测
 
-已有 `--smoke --demo --data-dir <独立目录>` 检查入口，可结合 `--interactions --update-checks` 运行交互回归。它会创建窗口、操作鼠标并保存结果；只在空闲的交互桌面运行，测试期间不要同时操作电脑。
+已有 `--smoke --demo --data-dir <独立目录>` 检查入口，可结合 `--interactions --update-checks --sidebar-checks`（侧栏单独验证使用 `--sidebar-only`） 运行交互回归。它会创建窗口、操作鼠标并保存结果；只在空闲的交互桌面运行，测试期间不要同时操作电脑。
 
 结果位于指定目录内的 `smoke-result.json`。必须检查 `passed` 字段和应用错误日志，不能只看进程退出码。截图可能包含桌面或任务栏，不应自动上传全部测试输出。
 
@@ -77,9 +77,11 @@ GitHub Actions 运行编译、核心检查和格式检查，不运行这类桌�
 
 ```powershell
 ISCC.exe installer/DesktopTodo.iss
-ISCC.exe /DPayload=..\artifacts\DesktopTodo-Compatibility /DOutputName=DesktopTodo-0.1.2-win-x64-Compatibility-Setup installer/DesktopTodo.iss
+ISCC.exe /DPayload=..\artifacts\DesktopTodo-Compatibility /DOutputName=DesktopTodo-0.1.3.2-win-x64-Compatibility-Setup installer/DesktopTodo.iss
 ```
 
 发行前需独立验证安装、升级、卸载保留数据及两种构建的差异。不要将个人数据库、`data-location.txt`、测试截图或缓存打入发行包。
 
-现有 0.1.2 二进制对应原发布标签；主分支后续文档与格式整理不代表重新发布了安装包。将来发布新版本时再更新版本号、安装器名称、发布说明与校验清单。
+0.1.3.2 安装包、免安装包和源码对应 `desktop-todo-v0.1.3.2` 标签。历史发布包对应各自标签；主分支后续修改不代表已经更新发行文件。
+
+侧栏拖动专项检查：以 `--smoke --sidebar-motion --data-dir <独立测试目录>` 运行，核对手势中的控件稳定性、固定鼠标位置、屏幕边缘和取消还原。测试目录必须与正式数据分开。
